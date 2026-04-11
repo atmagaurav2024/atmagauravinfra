@@ -137,7 +137,6 @@ const Contact = () => {
                       value={formData.name}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border-2 border-zinc-300 rounded-none focus:border-amber-500 focus:outline-none transition-colors"
-                      required
                       data-testid="contact-input-name"
                     />
                   </div>
@@ -153,7 +152,6 @@ const Contact = () => {
                       value={formData.email}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border-2 border-zinc-300 rounded-none focus:border-amber-500 focus:outline-none transition-colors"
-                      required
                       data-testid="contact-input-email"
                     />
                   </div>
@@ -184,7 +182,6 @@ const Contact = () => {
                       value={formData.subject}
                       onChange={handleChange}
                       className="w-full px-4 py-3 border-2 border-zinc-300 rounded-none focus:border-amber-500 focus:outline-none transition-colors"
-                      required
                       data-testid="contact-input-subject"
                     />
                   </div>
@@ -200,7 +197,6 @@ const Contact = () => {
                       onChange={handleChange}
                       rows="6"
                       className="w-full px-4 py-3 border-2 border-zinc-300 rounded-none focus:border-amber-500 focus:outline-none transition-colors resize-none"
-                      required
                       data-testid="contact-input-message"
                     ></textarea>
                   </div>
