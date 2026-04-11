@@ -1,0 +1,79 @@
+{
+  "theme": "light",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "vibe": "Industrial, Structural, Authoritative, Brutalist",
+  "colors": {
+    "background": "#FAFAFA",
+    "surface": "#F4F4F5",
+    "surface_dark": "#18181B",
+    "primary": "#F59E0B",
+    "primary_hover": "#D97706",
+    "text_main": "#09090B",
+    "text_muted": "#71717A",
+    "border": "#E4E4E7"
+  },
+  "typography": {
+    "heading_font": "Clash Display",
+    "body_font": "IBM Plex Sans",
+    "h1": "text-5xl sm:text-6xl lg:text-7xl tracking-tighter font-black uppercase",
+    "h2": "text-4xl sm:text-5xl tracking-tight font-bold uppercase",
+    "h3": "text-2xl sm:text-3xl tracking-tight font-semibold",
+    "body": "text-base leading-relaxed font-normal",
+    "overline": "text-xs tracking-[0.2em] uppercase font-semibold text-amber-600"
+  },
+  "layout": {
+    "spacing": "Generous (p-12 to p-32).",
+    "grid_strategy": "The 'Tetris' Grid (Asymmetrical, bento layouts for projects, exposed grid lines).",
+    "alignment": "Strict left-alignment for copy, optical centering where needed.",
+    "borders": "Visible structural grid borders (1px border-zinc-200) simulating architectural blueprints. Sharp corners everywhere."
+  },
+  "components": {
+    "forms": "Shadcn UI (Input, Textarea, Form, Button), heavily customized with hard square edges (rounded-none), thick borders on focus.",
+    "buttons": "Square edges (rounded-none). Primary: bg-amber-500 text-zinc-950 hover:bg-amber-600. Outline: border-2 border-zinc-950 text-zinc-950 hover:bg-zinc-950 hover:text-white.",
+    "cards": "Cardless approach or flat rectangles with 1px border. No soft shadows. High contrast.",
+    "navigation": "Sticky, glassmorphism (bg-white/70 backdrop-blur-xl border-b border-zinc-200), visible on desktop. Hard bottom border."
+  },
+  "motion": {
+    "transitions": "Snappy, spring-based animations. No slow fading.",
+    "hover": "High contrast shifts (e.g., bg-white to bg-zinc-950, text-zinc-950 to text-white).",
+    "scroll": "Lenis smooth scrolling recommended for a premium heavy feel."
+  },
+  "images": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1758551470883-af58f1556bfa?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBoaWdod2F5JTIwY29uc3RydWN0aW9uJTIwYWVyaWFsfGVufDB8fHx8MTc3NTkzMDUwMXww&ixlib=rb-4.1.0&q=85",
+      "description": "Aerial view of a complex highway interchange with skyscrapers.",
+      "usage": "Home page hero section, full bleed with bg-black/40 overlay."
+    },
+    "service_highway_bridge": {
+      "url": "https://images.unsplash.com/photo-1568671566370-49b36c5c7805?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzV8MHwxfHNlYXJjaHwzfHxoaWdod2F5JTIwYnJpZGdlJTIwY29uc3RydWN0aW9ufGVufDB8fHx8MTc3NTkzMDQ4OXww&ixlib=rb-4.1.0&q=85",
+      "description": "Grey concrete bridge during daytime.",
+      "usage": "Services section -> Bridge Construction & Maintenance."
+    },
+    "service_road_safety": {
+      "url": "https://images.unsplash.com/photo-1763569026025-17f15c1012a7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwyfHxyb2FkJTIwc2FmZXR5JTIwY29uc3RydWN0aW9ufGVufDB8fHx8MTc3NTkzMDQ4OXww&ixlib=rb-4.1.0&q=85",
+      "description": "Orange traffic cone.",
+      "usage": "Services section -> Road Safety Work."
+    },
+    "team_about": {
+      "url": "https://images.pexels.com/photos/8961031/pexels-photo-8961031.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Construction workers examining plans.",
+      "usage": "About Us section -> Leadership or Team overview."
+    },
+    "texture_bg": {
+      "url": "https://images.unsplash.com/photo-1706697887737-66e34286e05f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NzV8MHwxfHNlYXJjaHwyfHxhc3BoYWx0JTIwcm9hZCUyMHRleHR1cmV8ZW58MHx8fHwxNzc1OTMwNTAxfDA&ixlib=rb-4.1.0&q=85",
+      "description": "Asphalt texture with yellow/white line.",
+      "usage": "Footer background or contact section background to add industrial texture."
+    }
+  },
+  "specific_instructions_for_main_agent": [
+    "Do NOT use typical SaaS blue or generic purple gradients.",
+    "Use a pure grid-based 'blueprint' layout. Separate sections using 1px borders (border-zinc-200).",
+    "Hero Section overlay: Use maximum bg-black/50, never darker. Ensure the highway image is clearly visible.",
+    "Buttons should have sharp, hard edges (rounded-none).",
+    "Use 'Clash Display' for headings. If unavailable, use a very wide/bold sans-serif font, never Inter.",
+    "Implement the Contact form using Shadcn UI components. Handle validation and build a backend flow (or mockup) for database submission as required.",
+    "For the dynamic projects gallery, use a CSS Grid (bento style) layout with raw HTML/Tailwind. Make it asymmetrical. Do NOT just render equal sized squares.",
+    "Ensure the navigation is sticky and visible on desktop (no hamburger menu unless on mobile).",
+    "Add test IDs (`data-testid`) to all interactive elements."
+  ]
+}
