@@ -1070,6 +1070,57 @@ function deleteProject(id) {
 renderPublicPersons();
 renderPublicJobs();
 renderPublicProjects();
+
+// Expose all functions globally so onclick attributes work
+window.getCloudName = getCloudName;
+window.getPresetName = getPresetName;
+window.saveCloudNameFromSettings = saveCloudNameFromSettings;
+window.savePresetFromSettings = savePresetFromSettings;
+window.handlePhotoUpload = handlePhotoUpload;
+window.clearPhoto = clearPhoto;
+window.setPhotoPreview = setPhotoPreview;
+window.loadPersons = loadPersons;
+window.savePersons = savePersons;
+window.loadJobs = loadJobs;
+window.saveJobs = saveJobs;
+window.defaultPersons = defaultPersons;
+window.defaultJobs = defaultJobs;
+window.renderPublicPersons = renderPublicPersons;
+window.renderPublicJobs = renderPublicJobs;
+window.renderAdminPersons = renderAdminPersons;
+window.renderAdminJobs = renderAdminJobs;
+window.openPersonModal = openPersonModal;
+window.closePersonModal = closePersonModal;
+window.savePerson = savePerson;
+window.editPerson = editPerson;
+window.deletePerson = deletePerson;
+window.openJobModal = openJobModal;
+window.closeJobModal = closeJobModal;
+window.saveJob = saveJob;
+window.editJob = editJob;
+window.deleteJob = deleteJob;
+window.openAdmin = openAdmin;
+window.closeAdmin = closeAdmin;
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.switchTab = switchTab;
+window.checkNav = checkNav;
+window.toggleMob = toggleMob;
+window.closeMob = closeMob;
+window.go = go;
+window.submitContact = submitContact;
+window.fixContactGrid = fixContactGrid;
+window.fixFooterGrid = fixFooterGrid;
+window.loadProjects = loadProjects;
+window.saveProjects = saveProjects;
+window.defaultProjects = defaultProjects;
+window.renderPublicProjects = renderPublicProjects;
+window.renderAdminProjects = renderAdminProjects;
+window.openProjectModal = openProjectModal;
+window.closeProjectModal = closeProjectModal;
+window.saveProject = saveProject;
+window.editProject = editProject;
+window.deleteProject = deleteProject;
 </script>
 </body>
 </html>
