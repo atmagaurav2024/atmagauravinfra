@@ -83,6 +83,489 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
 @media(max-width:900px){#desk-nav{display:none!important}#hamburger{display:block!important}.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr 1fr!important}.g4{grid-template-columns:1fr 1fr!important}.order-r{order:-1!important}}
 @media(max-width:600px){.g3{grid-template-columns:1fr!important}.g4{grid-template-columns:1fr!important}.ph h1{font-size:36px!important}.hero-h1{font-size:clamp(32px,9vw,60px)!important}.g-half{grid-template-columns:1fr!important}}
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'admin123';
+
+// ---- CLOUDINARY ----
+function getCloudName()   { return localStorage.getItem('ai_cloudname') || ''; }
+function getPresetName()  { return localStorage.getItem('ai_preset') || 'ml_default'; }
+
+function saveCloudNameFromSettings() {
+  const val = document.getElementById('settings-cloudname').value.trim();
+  if (!val) { alert('Please enter your Cloud Name.'); return; }
+  localStorage.setItem('ai_cloudname', val);
+  const s = document.getElementById('settings-cloudname-status');
+  s.style.display = 'block';
+  setTimeout(() => s.style.display = 'none', 3000);
+}
+function savePresetFromSettings() {
+  const val = document.getElementById('settings-preset').value.trim();
+  if (!val) { alert('Please enter the preset name.'); return; }
+  localStorage.setItem('ai_preset', val);
+  const s = document.getElementById('settings-preset-status');
+  s.style.display = 'block';
+  setTimeout(() => s.style.display = 'none', 3000);
+}
+
+// ---- PHOTO UPLOAD ----
+async function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Photo must be under 5 MB.'); input.value = ''; return; }
+  const cloudName = getCloudName();
+  if (!cloudName) {
+    alert('Please set your Cloudinary Cloud Name in Admin \u2192 Settings tab first.');
+    input.value = '';
+    return;
+  }
+  const prog  = document.getElementById('pm-upload-progress');
+  const bar   = document.getElementById('pm-progress-bar');
+  const stat  = document.getElementById('pm-upload-status');
+  prog.style.display = 'block';
+  bar.style.width = '20%';
+  stat.textContent = 'Uploading to cloud\u2026';
+  stat.style.color = '#6b7280';
+  document.getElementById('pm-photo-filename').textContent = file.name;
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', getPresetName());
+    fd.append('folder', 'atmagaurav_infra');
+    bar.style.width = '55%';
+    const res = await fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', { method: 'POST', body: fd });
+    bar.style.width = '90%';
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Upload failed'); }
+    const data = await res.json();
+    bar.style.width = '100%';
+    stat.textContent = '\u2705 Uploaded successfully!';
+    stat.style.color = '#16a34a';
+    document.getElementById('pm-photo').value = data.secure_url;
+    document.getElementById('pm-photo-preview-img').src = data.secure_url;
+    document.getElementById('pm-photo-preview').style.display = 'block';
+    document.getElementById('pm-photo-label').style.borderColor = '#e8730a';
+    setTimeout(() => { prog.style.display = 'none'; bar.style.width = '0%'; }, 2500);
+  } catch (err) {
+    bar.style.width = '0%';
+    stat.textContent = '\u274C Upload failed: ' + err.message;
+    stat.style.color = '#dc2626';
+  }
+}
+function clearPhoto() {
+  document.getElementById('pm-photo').value = '';
+  document.getElementById('pm-photo-file').value = '';
+  document.getElementById('pm-photo-preview').style.display = 'none';
+  document.getElementById('pm-upload-progress').style.display = 'none';
+  document.getElementById('pm-photo-filename').textContent = 'Click to upload a photo\u2026';
+  document.getElementById('pm-photo-label').style.borderColor = '#d1d5db';
+}
+function setPhotoPreview(url) {
+  if (url) {
+    document.getElementById('pm-photo').value = url;
+    document.getElementById('pm-photo-preview-img').src = url;
+    document.getElementById('pm-photo-preview').style.display = 'block';
+    document.getElementById('pm-photo-filename').textContent = 'Current photo';
+    document.getElementById('pm-photo-label').style.borderColor = '#e8730a';
+  } else { clearPhoto(); }
+}
+
+// ---- DATA ----
+function loadPersons() { try { return JSON.parse(localStorage.getItem('ai_persons')) || defaultPersons(); } catch(e) { return defaultPersons(); } }
+function savePersons(d) { localStorage.setItem('ai_persons', JSON.stringify(d)); }
+function loadJobs()    { try { return JSON.parse(localStorage.getItem('ai_jobs'))    || defaultJobs();    } catch(e) { return defaultJobs();    } }
+function saveJobs(d)   { localStorage.setItem('ai_jobs', JSON.stringify(d)); }
+
+function defaultPersons() {
+  return [
+    { id:1, name:'Kshitij Borkar',    role:'Director',            photo:'', bio:'Co-founder and Director of Atmagaurav Infra Pvt. Ltd., leading strategic planning and government liaison.' },
+    { id:2, name:'Gajanan Kakade',    role:'Director',            photo:'', bio:'Co-founder and Director overseeing finance, contracts, and business development.' },
+    { id:3, name:'Shivshankar Borkar',role:'Project Coordinator', photo:'', bio:'Experienced project coordinator managing on-site execution, timelines, and team coordination across all active projects.' },
+  ];
+}
+function defaultJobs() {
+  return [
+    { id:1, title:'Site Engineer \u2013 Highway Projects', dept:'Engineering',  loc:'Buldhana / Jalna, MH', exp:'B.E. Civil (2\u20135 yrs)' },
+    { id:2, title:'Junior Engineer \u2013 Bridge Works',   dept:'Engineering',  loc:'Maharashtra',          exp:'B.E./Diploma Civil (0\u20133 yrs)' },
+    { id:3, title:'Project Manager \u2013 Highway',        dept:'Management',   loc:'Bhayander, Thane',     exp:'B.E. Civil (8+ yrs)' },
+    { id:4, title:'Safety Officer (HSE)',                   dept:'Safety',       loc:'Field Sites, MH',      exp:'Diploma/Degree + NEBOSH (3+ yrs)' },
+    { id:5, title:'Site Supervisor / Foreman',              dept:'Field',        loc:'Various Sites, MH',    exp:'ITI/Diploma (2+ yrs)' },
+  ];
+}
+
+// ---- RENDER PUBLIC ----
+function renderPublicPersons() {
+  const el = document.getElementById('persons-public-list');
+  if (!el) return;
+  const list = loadPersons();
+  el.innerHTML = list.map(p => {
+    const av = p.photo
+      ? `<img src="${p.photo}" alt="${p.name}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:3px solid #e8730a;" onerror="this.style.display='none'">`
+      : `<div style="width:100px;height:100px;border-radius:50%;background:#0d1b3e;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px;border:3px solid #e8730a;">\u{1F464}</div>`;
+    return `<div style="padding:28px 20px;border:1px solid #e5e7eb;border-radius:10px;text-align:center;background:#fff;">${av}<h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;font-size:17px;margin-bottom:4px;">${p.name}</h3><div style="color:#e8730a;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">${p.role}</div>${p.bio ? `<p style="color:#6b7280;font-size:13px;line-height:1.65;">${p.bio}</p>` : ''}</div>`;
+  }).join('');
+}
+function renderPublicJobs() {
+  const el = document.getElementById('jobs-public-list');
+  if (!el) return;
+  const list = loadJobs();
+  if (!list.length) { el.innerHTML = `<div style="text-align:center;padding:32px;color:#6b7280;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">No open positions at this time. Check back soon!</div>`; return; }
+  el.innerHTML = list.map(j => `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;"><div><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${j.dept}</span><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;font-size:17px;margin:7px 0 6px;">${j.title}</h3><p style="color:#6b7280;font-size:13px;">\u{1F4CD} ${j.loc} &nbsp;\u00B7&nbsp; Full-Time &nbsp;\u00B7&nbsp; ${j.exp}</p></div><a href="mailto:admin@atmagauravinfra.com?subject=Application: ${encodeURIComponent(j.title)}" class="btn-orange" style="text-decoration:none;white-space:nowrap;padding:9px 18px;">Apply Now</a></div>`).join('');
+}
+
+// ---- RENDER ADMIN ----
+function renderAdminPersons() {
+  const el = document.getElementById('persons-admin-list');
+  if (!el) return;
+  const list = loadPersons();
+  el.innerHTML = !list.length ? `<p style="color:#9ca3af;text-align:center;padding:20px;">No persons added yet.</p>` :
+    list.map(p => `<div class="person-card">${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : `<div style="width:52px;height:52px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">\u{1F464}</div>`}<div style="flex:1;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;">${p.name}</div><div style="color:#e8730a;font-size:12px;font-weight:600;">${p.role}</div>${p.bio ? `<div style="color:#6b7280;font-size:12px;margin-top:2px;">${p.bio.substring(0,70)}${p.bio.length>70?'\u2026':''}</div>` : ''}</div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editPerson(${p.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">\u270F\uFE0F Edit</button><button onclick="deletePerson(${p.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">\u{1F5D1} Del</button></div></div>`).join('');
+}
+function renderAdminJobs() {
+  const el = document.getElementById('jobs-admin-list');
+  if (!el) return;
+  const list = loadJobs();
+  el.innerHTML = !list.length ? `<p style="color:#9ca3af;text-align:center;padding:20px;">No positions added yet.</p>` :
+    list.map(j => `<div class="job-admin-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;"><div><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${j.dept}</span><div style="font-weight:700;color:#0d1b3e;font-size:14px;margin:5px 0 3px;">${j.title}</div><div style="color:#6b7280;font-size:12px;">\u{1F4CD} ${j.loc} \u00B7 ${j.exp}</div></div><div style="display:flex;gap:7px;"><button onclick="editJob(${j.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">\u270F\uFE0F Edit</button><button onclick="deleteJob(${j.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">\u{1F5D1} Del</button></div></div></div>`).join('');
+}
+
+// ---- PERSON CRUD ----
+let editingPersonId = null;
+function openPersonModal(id) {
+  editingPersonId = id || null;
+  const persons = loadPersons();
+  if (id) {
+    const p = persons.find(x => x.id === id);
+    document.getElementById('person-modal-title').textContent = 'Edit Key Person';
+    document.getElementById('pm-name').value = p.name;
+    document.getElementById('pm-role').value = p.role;
+    document.getElementById('pm-bio').value  = p.bio || '';
+    document.getElementById('pm-save-btn').textContent = 'Update Person';
+    setPhotoPreview(p.photo || '');
+  } else {
+    document.getElementById('person-modal-title').textContent = 'Add Key Person';
+    document.getElementById('pm-name').value = '';
+    document.getElementById('pm-role').value = '';
+    document.getElementById('pm-bio').value  = '';
+    document.getElementById('pm-save-btn').textContent = 'Save Person';
+    clearPhoto();
+  }
+  // Show Cloudinary warning if not configured
+  document.getElementById('cloudinary-warn').style.display = getCloudName() ? 'none' : 'block';
+  document.getElementById('person-modal').classList.add('open');
+}
+function closePersonModal() { document.getElementById('person-modal').classList.remove('open'); }
+function savePerson() {
+  const name = document.getElementById('pm-name').value.trim();
+  const role = document.getElementById('pm-role').value.trim();
+  if (!name || !role) { alert('Name and designation are required.'); return; }
+  const persons = loadPersons();
+  const photo = document.getElementById('pm-photo').value.trim();
+  const bio   = document.getElementById('pm-bio').value.trim();
+  if (editingPersonId) {
+    const i = persons.findIndex(x => x.id === editingPersonId);
+    persons[i] = { ...persons[i], name, role, photo, bio };
+  } else {
+    persons.push({ id: Date.now(), name, role, photo, bio });
+  }
+  savePersons(persons);
+  renderAdminPersons();
+  renderPublicPersons();
+  closePersonModal();
+}
+function editPerson(id)   { openPersonModal(id); }
+function deletePerson(id) {
+  if (!confirm('Delete this person?')) return;
+  savePersons(loadPersons().filter(x => x.id !== id));
+  renderAdminPersons(); renderPublicPersons();
+}
+
+// ---- JOB CRUD ----
+let editingJobId = null;
+function openJobModal(id) {
+  editingJobId = id || null;
+  const jobs = loadJobs();
+  if (id) {
+    const j = jobs.find(x => x.id === id);
+    document.getElementById('job-modal-title').textContent = 'Edit Position';
+    document.getElementById('jm-title').value = j.title;
+    document.getElementById('jm-dept').value  = j.dept;
+    document.getElementById('jm-loc').value   = j.loc;
+    document.getElementById('jm-exp').value   = j.exp;
+    document.getElementById('jm-save-btn').textContent = 'Update Position';
+  } else {
+    document.getElementById('job-modal-title').textContent = 'Add Open Position';
+    ['jm-title','jm-dept','jm-loc','jm-exp'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('jm-save-btn').textContent = 'Save Position';
+  }
+  document.getElementById('job-modal').classList.add('open');
+}
+function closeJobModal() { document.getElementById('job-modal').classList.remove('open'); }
+function saveJob() {
+  const title = document.getElementById('jm-title').value.trim();
+  const dept  = document.getElementById('jm-dept').value.trim();
+  const loc   = document.getElementById('jm-loc').value.trim();
+  const exp   = document.getElementById('jm-exp').value.trim();
+  if (!title || !dept || !loc) { alert('Title, department, and location are required.'); return; }
+  const jobs = loadJobs();
+  if (editingJobId) {
+    const i = jobs.findIndex(x => x.id === editingJobId);
+    jobs[i] = { ...jobs[i], title, dept, loc, exp };
+  } else {
+    jobs.push({ id: Date.now(), title, dept, loc, exp });
+  }
+  saveJobs(jobs);
+  renderAdminJobs(); renderPublicJobs();
+  closeJobModal();
+}
+function editJob(id)   { openJobModal(id); }
+function deleteJob(id) {
+  if (!confirm('Delete this position?')) return;
+  saveJobs(loadJobs().filter(x => x.id !== id));
+  renderAdminJobs(); renderPublicJobs();
+}
+
+// ---- ADMIN LOGIN ----
+function openAdmin()  { document.getElementById('admin-panel').classList.add('open'); }
+function closeAdmin() {
+  document.getElementById('admin-panel').classList.remove('open');
+  document.getElementById('login-err').style.display = 'none';
+}
+function doLogin() {
+  const u = document.getElementById('admin-user').value.trim();
+  const p = document.getElementById('admin-pass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('admin-login-screen').style.display  = 'none';
+    document.getElementById('admin-dashboard').style.display     = 'flex';
+    renderAdminPersons(); renderAdminJobs(); renderAdminProjects();
+    // Pre-fill settings
+    const cn = getCloudName();
+    if (cn) document.getElementById('settings-cloudname').value = cn;
+    const pr = getPresetName();
+    if (pr) document.getElementById('settings-preset').value = pr;
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+function doLogout() {
+  document.getElementById('admin-dashboard').style.display    = 'none';
+  document.getElementById('admin-login-screen').style.display = 'block';
+  document.getElementById('admin-user').value = '';
+  document.getElementById('admin-pass').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  // reset tabs
+  switchTab('tab-persons', document.querySelector('.admin-tab'));
+}
+
+// ---- SWITCH TAB ----
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  ['tab-persons','tab-jobs','tab-projects','tab-settings'].forEach(id => {
+    document.getElementById(id).style.display = (id === tabId) ? 'block' : 'none';
+  });
+  if (tabId === 'tab-projects') { renderAdminProjects(); }
+  if (tabId === 'tab-settings') {
+    const cn = getCloudName();
+    if (cn) document.getElementById('settings-cloudname').value = cn;
+    const pr = getPresetName();
+    if (pr) document.getElementById('settings-preset').value = pr;
+  }
+}
+
+// Close on backdrop click
+['admin-panel','person-modal','job-modal','project-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) {
+      if (id === 'admin-panel') closeAdmin();
+      else if (id === 'person-modal') closePersonModal();
+      else if (id === 'job-modal') closeJobModal();
+      else closeProjectModal();
+    }
+  });
+});
+
+// ---- FOOTER ----
+const ftpl = document.getElementById('ftpl').content;
+document.querySelectorAll('[data-footer]').forEach(el => el.appendChild(ftpl.cloneNode(true)));
+
+// ---- RESPONSIVE NAV ----
+const hamburger = document.getElementById('hamburger');
+const deskNav   = document.getElementById('desk-nav');
+function checkNav() {
+  if (window.innerWidth < 900) { hamburger.style.display='block'; deskNav.style.display='none'; }
+  else { hamburger.style.display='none'; deskNav.style.display='flex'; closeMob(); }
+}
+window.addEventListener('resize', checkNav); checkNav();
+function toggleMob() { document.getElementById('mob-menu').classList.toggle('open'); }
+function closeMob()  { document.getElementById('mob-menu').classList.remove('open'); }
+
+// ---- PAGE NAV ----
+const PAGES = ['home','about','services','projects','careers','contact'];
+function go(name) {
+  PAGES.forEach(p => {
+    document.getElementById('pg-'+p).classList.remove('active');
+    const btn = document.getElementById('nb-'+p);
+    if (btn) btn.classList.remove('active');
+  });
+  document.getElementById('pg-'+name).classList.add('active');
+  const btn = document.getElementById('nb-'+name);
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  closeMob();
+  if (name === 'about')   renderPublicPersons();
+  if (name === 'careers') renderPublicJobs();
+  if (name === 'projects') renderPublicProjects();
+}
+
+// ---- CONTACT FORM ----
+function submitContact(e) {
+  e.preventDefault();
+  const name    = document.getElementById('cf-name').value;
+  const company = document.getElementById('cf-company').value;
+  const email   = document.getElementById('cf-email').value;
+  const phone   = document.getElementById('cf-phone').value;
+  const subject = document.getElementById('cf-subject').value;
+  const msg     = document.getElementById('cf-msg').value;
+  const body = `Name: ${name}\nCompany: ${company}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${msg}`;
+  window.location.href = `mailto:admin@atmagauravinfra.com?subject=${encodeURIComponent(subject + ' \u2013 ' + name)}&body=${encodeURIComponent(body)}`;
+  document.getElementById('c-ok').style.display = 'block';
+  e.target.reset();
+  setTimeout(() => document.getElementById('c-ok').style.display = 'none', 7000);
+}
+
+// ---- RESPONSIVE GRIDS ----
+function fixContactGrid() {
+  const g = document.getElementById('contact-grid');
+  if (g) g.style.gridTemplateColumns = window.innerWidth < 800 ? '1fr' : '1fr 1.2fr';
+}
+function fixFooterGrid() {
+  document.querySelectorAll('.footer-grid').forEach(g => {
+    g.style.gridTemplateColumns = window.innerWidth < 800 ? '1fr 1fr' : '2fr 1fr 1fr 1.5fr';
+    if (window.innerWidth < 480) g.style.gridTemplateColumns = '1fr';
+  });
+}
+window.addEventListener('resize', fixContactGrid);
+window.addEventListener('resize', fixFooterGrid);
+fixContactGrid(); fixFooterGrid();
+
+
+// ---- PROJECTS DATA ----
+function loadProjects() {
+  try { return JSON.parse(localStorage.getItem('ai_projects')) || defaultProjects(); } catch(e) { return defaultProjects(); }
+}
+function saveProjects(d) { localStorage.setItem('ai_projects', JSON.stringify(d)); }
+
+function defaultProjects() {
+  return [
+    { id:1, title:'Foot Over Bridge at Hiwra Ashram, Buldhana', cat:'Bridge Construction · NHAI', loc:'Buldhana, MH', desc:'Construction of a pedestrian foot over bridge to improve safety and access at Hiwra Ashram on the national highway stretch.', status:'ongoing', img:'https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Construction'] },
+    { id:2, title:'NH 161G – Shegaon to Sangrampur', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Annual maintenance contract covering routine and periodic works including resurfacing, drainage, and road signage.', status:'ongoing', img:'https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
+    { id:3, title:'NH 161G – Sangrampur to MP Border', cat:'Highway Maintenance · NHAI', loc:'Buldhana–MP, MH', desc:'Maintenance of NH 161G from Sangrampur to the Madhya Pradesh border covering bituminous, drainage, and safety works.', status:'ongoing', img:'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana–MP, MH','Maintenance'] },
+    { id:4, title:'NH 548C – Khamgaon to Deulgaon Sakharsha', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Routine and periodic maintenance on NH 548C covering pavement, drainage, and road furniture works.', status:'ongoing', img:'https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
+    { id:5, title:'NH 753C – Dusarbid to Pimpri Sarad', cat:'Highway Maintenance · NHAI', loc:'Jalna–Pulgaon, MH', desc:'Routine and periodic maintenance on the Jalna–Pulgaon section covering bituminous works, drainage, and road furniture.', status:'ongoing', img:'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Jalna–Pulgaon, MH','Maintenance'] },
+  ];
+}
+
+// ---- RENDER PUBLIC PROJECTS ----
+function renderPublicProjects() {
+  const all = loadProjects();
+  const ongoing   = all.filter(p => p.status === 'ongoing');
+  const completed = all.filter(p => p.status === 'completed');
+
+  const makeCard = (p) => {
+    const badge = p.status === 'ongoing'
+      ? '<span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span>'
+      : '<span style="position:absolute;top:12px;left:12px;background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; Completed</span>';
+    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700';
+    const tags = (p.tags||[]).map(t=>'<span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">'+t+'</span>').join('');
+    return '<div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="'+imgSrc+'" alt="'+p.title+'" style="height:195px;">'+badge+'</div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">'+(p.cat||'')+'</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">'+p.title+'</h3>'+(p.desc?'<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">'+p.desc+'</p>':'')+'<div style="display:flex;gap:8px;flex-wrap:wrap;">&#128205; '+(p.loc||'')+' '+tags+'</div></div></div>';
+  };
+
+  const oEl = document.getElementById('projects-public-ongoing');
+  const cEl = document.getElementById('projects-public-completed');
+  const cSec = document.getElementById('public-completed-section');
+  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeCard).join('') : '<p style="color:#9ca3af;padding:20px;">No ongoing projects.</p>';
+  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeCard).join('') : '';
+  if (cSec) cSec.style.display = completed.length ? 'block' : 'none';
+}
+
+// ---- RENDER ADMIN PROJECTS ----
+function renderAdminProjects() {
+  const all = loadProjects();
+  const ongoing   = all.filter(p => p.status === 'ongoing');
+  const completed = all.filter(p => p.status === 'completed');
+
+  const makeAdminCard = (p) => {
+    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=100';
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="'+imgSrc+'" alt="'+p.title+'" style="width:56px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.title+'</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">'+(p.cat||'')+'</div><div style="color:#9ca3af;font-size:11px;margin-top:2px;">&#128205; '+(p.loc||'')+'</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editProject('+p.id+')" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteProject('+p.id+')" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>';
+  };
+
+  const oEl = document.getElementById('projects-admin-ongoing');
+  const cEl = document.getElementById('projects-admin-completed');
+  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No ongoing projects. Click + Add Project.</p>';
+  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No completed projects yet.</p>';
+}
+
+// ---- PROJECT CRUD ----
+let editingProjectId = null;
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  const projects = loadProjects();
+  if (id) {
+    const p = projects.find(x => x.id === id);
+    document.getElementById('project-modal-title').textContent = 'Edit Project';
+    document.getElementById('prjm-title').value  = p.title  || '';
+    document.getElementById('prjm-cat').value    = p.cat    || '';
+    document.getElementById('prjm-loc').value    = p.loc    || '';
+    document.getElementById('prjm-desc').value   = p.desc   || '';
+    document.getElementById('prjm-status').value = p.status || 'ongoing';
+    document.getElementById('prjm-img').value    = p.img    || '';
+    document.getElementById('prjm-tags').value   = (p.tags||[]).join(', ');
+    document.getElementById('prjm-save-btn').textContent = 'Update Project';
+  } else {
+    document.getElementById('project-modal-title').textContent = 'Add Project';
+    ['prjm-title','prjm-cat','prjm-loc','prjm-desc','prjm-img','prjm-tags'].forEach(function(i){ document.getElementById(i).value = ''; });
+    document.getElementById('prjm-status').value = 'ongoing';
+    document.getElementById('prjm-save-btn').textContent = 'Save Project';
+  }
+  document.getElementById('project-modal').classList.add('open');
+}
+function closeProjectModal() { document.getElementById('project-modal').classList.remove('open'); }
+function saveProject() {
+  const title  = document.getElementById('prjm-title').value.trim();
+  const cat    = document.getElementById('prjm-cat').value.trim();
+  const loc    = document.getElementById('prjm-loc').value.trim();
+  const desc   = document.getElementById('prjm-desc').value.trim();
+  const status = document.getElementById('prjm-status').value;
+  const img    = document.getElementById('prjm-img').value.trim();
+  const tagsRaw= document.getElementById('prjm-tags').value.trim();
+  const tags   = tagsRaw ? tagsRaw.split(',').map(function(t){return t.trim();}).filter(Boolean) : [];
+  if (!title || !loc) { alert('Title and location are required.'); return; }
+  const projects = loadProjects();
+  if (editingProjectId) {
+    const i = projects.findIndex(function(x){ return x.id === editingProjectId; });
+    projects[i] = Object.assign({}, projects[i], { title, cat, loc, desc, status, img, tags });
+  } else {
+    projects.push({ id: Date.now(), title, cat, loc, desc, status, img, tags });
+  }
+  saveProjects(projects);
+  renderAdminProjects();
+  renderPublicProjects();
+  closeProjectModal();
+}
+function editProject(id)   { openProjectModal(id); }
+function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  saveProjects(loadProjects().filter(function(x){ return x.id !== id; }));
+  renderAdminProjects();
+  renderPublicProjects();
+}
+// ---- INIT ----
+renderPublicPersons();
+renderPublicJobs();
+renderPublicProjects();
+});
+</script>
 </head>
 <body>
 
@@ -590,537 +1073,5 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
   </footer>
 </template>
 
-<script>
-const ADMIN_USER = 'admin';
-const ADMIN_PASS = 'admin123';
-
-// ---- CLOUDINARY ----
-function getCloudName()   { return localStorage.getItem('ai_cloudname') || ''; }
-function getPresetName()  { return localStorage.getItem('ai_preset') || 'ml_default'; }
-
-function saveCloudNameFromSettings() {
-  const val = document.getElementById('settings-cloudname').value.trim();
-  if (!val) { alert('Please enter your Cloud Name.'); return; }
-  localStorage.setItem('ai_cloudname', val);
-  const s = document.getElementById('settings-cloudname-status');
-  s.style.display = 'block';
-  setTimeout(() => s.style.display = 'none', 3000);
-}
-function savePresetFromSettings() {
-  const val = document.getElementById('settings-preset').value.trim();
-  if (!val) { alert('Please enter the preset name.'); return; }
-  localStorage.setItem('ai_preset', val);
-  const s = document.getElementById('settings-preset-status');
-  s.style.display = 'block';
-  setTimeout(() => s.style.display = 'none', 3000);
-}
-
-// ---- PHOTO UPLOAD ----
-async function handlePhotoUpload(input) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 5 * 1024 * 1024) { alert('Photo must be under 5 MB.'); input.value = ''; return; }
-  const cloudName = getCloudName();
-  if (!cloudName) {
-    alert('Please set your Cloudinary Cloud Name in Admin \u2192 Settings tab first.');
-    input.value = '';
-    return;
-  }
-  const prog  = document.getElementById('pm-upload-progress');
-  const bar   = document.getElementById('pm-progress-bar');
-  const stat  = document.getElementById('pm-upload-status');
-  prog.style.display = 'block';
-  bar.style.width = '20%';
-  stat.textContent = 'Uploading to cloud\u2026';
-  stat.style.color = '#6b7280';
-  document.getElementById('pm-photo-filename').textContent = file.name;
-  try {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', getPresetName());
-    fd.append('folder', 'atmagaurav_infra');
-    bar.style.width = '55%';
-    const res = await fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', { method: 'POST', body: fd });
-    bar.style.width = '90%';
-    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Upload failed'); }
-    const data = await res.json();
-    bar.style.width = '100%';
-    stat.textContent = '\u2705 Uploaded successfully!';
-    stat.style.color = '#16a34a';
-    document.getElementById('pm-photo').value = data.secure_url;
-    document.getElementById('pm-photo-preview-img').src = data.secure_url;
-    document.getElementById('pm-photo-preview').style.display = 'block';
-    document.getElementById('pm-photo-label').style.borderColor = '#e8730a';
-    setTimeout(() => { prog.style.display = 'none'; bar.style.width = '0%'; }, 2500);
-  } catch (err) {
-    bar.style.width = '0%';
-    stat.textContent = '\u274C Upload failed: ' + err.message;
-    stat.style.color = '#dc2626';
-  }
-}
-function clearPhoto() {
-  document.getElementById('pm-photo').value = '';
-  document.getElementById('pm-photo-file').value = '';
-  document.getElementById('pm-photo-preview').style.display = 'none';
-  document.getElementById('pm-upload-progress').style.display = 'none';
-  document.getElementById('pm-photo-filename').textContent = 'Click to upload a photo\u2026';
-  document.getElementById('pm-photo-label').style.borderColor = '#d1d5db';
-}
-function setPhotoPreview(url) {
-  if (url) {
-    document.getElementById('pm-photo').value = url;
-    document.getElementById('pm-photo-preview-img').src = url;
-    document.getElementById('pm-photo-preview').style.display = 'block';
-    document.getElementById('pm-photo-filename').textContent = 'Current photo';
-    document.getElementById('pm-photo-label').style.borderColor = '#e8730a';
-  } else { clearPhoto(); }
-}
-
-// ---- DATA ----
-function loadPersons() { try { return JSON.parse(localStorage.getItem('ai_persons')) || defaultPersons(); } catch(e) { return defaultPersons(); } }
-function savePersons(d) { localStorage.setItem('ai_persons', JSON.stringify(d)); }
-function loadJobs()    { try { return JSON.parse(localStorage.getItem('ai_jobs'))    || defaultJobs();    } catch(e) { return defaultJobs();    } }
-function saveJobs(d)   { localStorage.setItem('ai_jobs', JSON.stringify(d)); }
-
-function defaultPersons() {
-  return [
-    { id:1, name:'Kshitij Borkar',    role:'Director',            photo:'', bio:'Co-founder and Director of Atmagaurav Infra Pvt. Ltd., leading strategic planning and government liaison.' },
-    { id:2, name:'Gajanan Kakade',    role:'Director',            photo:'', bio:'Co-founder and Director overseeing finance, contracts, and business development.' },
-    { id:3, name:'Shivshankar Borkar',role:'Project Coordinator', photo:'', bio:'Experienced project coordinator managing on-site execution, timelines, and team coordination across all active projects.' },
-  ];
-}
-function defaultJobs() {
-  return [
-    { id:1, title:'Site Engineer \u2013 Highway Projects', dept:'Engineering',  loc:'Buldhana / Jalna, MH', exp:'B.E. Civil (2\u20135 yrs)' },
-    { id:2, title:'Junior Engineer \u2013 Bridge Works',   dept:'Engineering',  loc:'Maharashtra',          exp:'B.E./Diploma Civil (0\u20133 yrs)' },
-    { id:3, title:'Project Manager \u2013 Highway',        dept:'Management',   loc:'Bhayander, Thane',     exp:'B.E. Civil (8+ yrs)' },
-    { id:4, title:'Safety Officer (HSE)',                   dept:'Safety',       loc:'Field Sites, MH',      exp:'Diploma/Degree + NEBOSH (3+ yrs)' },
-    { id:5, title:'Site Supervisor / Foreman',              dept:'Field',        loc:'Various Sites, MH',    exp:'ITI/Diploma (2+ yrs)' },
-  ];
-}
-
-// ---- RENDER PUBLIC ----
-function renderPublicPersons() {
-  const el = document.getElementById('persons-public-list');
-  if (!el) return;
-  const list = loadPersons();
-  el.innerHTML = list.map(p => {
-    const av = p.photo
-      ? `<img src="${p.photo}" alt="${p.name}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 14px;border:3px solid #e8730a;" onerror="this.style.display='none'">`
-      : `<div style="width:100px;height:100px;border-radius:50%;background:#0d1b3e;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px;border:3px solid #e8730a;">\u{1F464}</div>`;
-    return `<div style="padding:28px 20px;border:1px solid #e5e7eb;border-radius:10px;text-align:center;background:#fff;">${av}<h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;font-size:17px;margin-bottom:4px;">${p.name}</h3><div style="color:#e8730a;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">${p.role}</div>${p.bio ? `<p style="color:#6b7280;font-size:13px;line-height:1.65;">${p.bio}</p>` : ''}</div>`;
-  }).join('');
-}
-function renderPublicJobs() {
-  const el = document.getElementById('jobs-public-list');
-  if (!el) return;
-  const list = loadJobs();
-  if (!list.length) { el.innerHTML = `<div style="text-align:center;padding:32px;color:#6b7280;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">No open positions at this time. Check back soon!</div>`; return; }
-  el.innerHTML = list.map(j => `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;"><div><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${j.dept}</span><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;font-size:17px;margin:7px 0 6px;">${j.title}</h3><p style="color:#6b7280;font-size:13px;">\u{1F4CD} ${j.loc} &nbsp;\u00B7&nbsp; Full-Time &nbsp;\u00B7&nbsp; ${j.exp}</p></div><a href="mailto:admin@atmagauravinfra.com?subject=Application: ${encodeURIComponent(j.title)}" class="btn-orange" style="text-decoration:none;white-space:nowrap;padding:9px 18px;">Apply Now</a></div>`).join('');
-}
-
-// ---- RENDER ADMIN ----
-function renderAdminPersons() {
-  const el = document.getElementById('persons-admin-list');
-  if (!el) return;
-  const list = loadPersons();
-  el.innerHTML = !list.length ? `<p style="color:#9ca3af;text-align:center;padding:20px;">No persons added yet.</p>` :
-    list.map(p => `<div class="person-card">${p.photo ? `<img src="${p.photo}" alt="${p.name}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">` : `<div style="width:52px;height:52px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">\u{1F464}</div>`}<div style="flex:1;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;">${p.name}</div><div style="color:#e8730a;font-size:12px;font-weight:600;">${p.role}</div>${p.bio ? `<div style="color:#6b7280;font-size:12px;margin-top:2px;">${p.bio.substring(0,70)}${p.bio.length>70?'\u2026':''}</div>` : ''}</div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editPerson(${p.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">\u270F\uFE0F Edit</button><button onclick="deletePerson(${p.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">\u{1F5D1} Del</button></div></div>`).join('');
-}
-function renderAdminJobs() {
-  const el = document.getElementById('jobs-admin-list');
-  if (!el) return;
-  const list = loadJobs();
-  el.innerHTML = !list.length ? `<p style="color:#9ca3af;text-align:center;padding:20px;">No positions added yet.</p>` :
-    list.map(j => `<div class="job-admin-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;"><div><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${j.dept}</span><div style="font-weight:700;color:#0d1b3e;font-size:14px;margin:5px 0 3px;">${j.title}</div><div style="color:#6b7280;font-size:12px;">\u{1F4CD} ${j.loc} \u00B7 ${j.exp}</div></div><div style="display:flex;gap:7px;"><button onclick="editJob(${j.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">\u270F\uFE0F Edit</button><button onclick="deleteJob(${j.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">\u{1F5D1} Del</button></div></div></div>`).join('');
-}
-
-// ---- PERSON CRUD ----
-let editingPersonId = null;
-function openPersonModal(id) {
-  editingPersonId = id || null;
-  const persons = loadPersons();
-  if (id) {
-    const p = persons.find(x => x.id === id);
-    document.getElementById('person-modal-title').textContent = 'Edit Key Person';
-    document.getElementById('pm-name').value = p.name;
-    document.getElementById('pm-role').value = p.role;
-    document.getElementById('pm-bio').value  = p.bio || '';
-    document.getElementById('pm-save-btn').textContent = 'Update Person';
-    setPhotoPreview(p.photo || '');
-  } else {
-    document.getElementById('person-modal-title').textContent = 'Add Key Person';
-    document.getElementById('pm-name').value = '';
-    document.getElementById('pm-role').value = '';
-    document.getElementById('pm-bio').value  = '';
-    document.getElementById('pm-save-btn').textContent = 'Save Person';
-    clearPhoto();
-  }
-  // Show Cloudinary warning if not configured
-  document.getElementById('cloudinary-warn').style.display = getCloudName() ? 'none' : 'block';
-  document.getElementById('person-modal').classList.add('open');
-}
-function closePersonModal() { document.getElementById('person-modal').classList.remove('open'); }
-function savePerson() {
-  const name = document.getElementById('pm-name').value.trim();
-  const role = document.getElementById('pm-role').value.trim();
-  if (!name || !role) { alert('Name and designation are required.'); return; }
-  const persons = loadPersons();
-  const photo = document.getElementById('pm-photo').value.trim();
-  const bio   = document.getElementById('pm-bio').value.trim();
-  if (editingPersonId) {
-    const i = persons.findIndex(x => x.id === editingPersonId);
-    persons[i] = { ...persons[i], name, role, photo, bio };
-  } else {
-    persons.push({ id: Date.now(), name, role, photo, bio });
-  }
-  savePersons(persons);
-  renderAdminPersons();
-  renderPublicPersons();
-  closePersonModal();
-}
-function editPerson(id)   { openPersonModal(id); }
-function deletePerson(id) {
-  if (!confirm('Delete this person?')) return;
-  savePersons(loadPersons().filter(x => x.id !== id));
-  renderAdminPersons(); renderPublicPersons();
-}
-
-// ---- JOB CRUD ----
-let editingJobId = null;
-function openJobModal(id) {
-  editingJobId = id || null;
-  const jobs = loadJobs();
-  if (id) {
-    const j = jobs.find(x => x.id === id);
-    document.getElementById('job-modal-title').textContent = 'Edit Position';
-    document.getElementById('jm-title').value = j.title;
-    document.getElementById('jm-dept').value  = j.dept;
-    document.getElementById('jm-loc').value   = j.loc;
-    document.getElementById('jm-exp').value   = j.exp;
-    document.getElementById('jm-save-btn').textContent = 'Update Position';
-  } else {
-    document.getElementById('job-modal-title').textContent = 'Add Open Position';
-    ['jm-title','jm-dept','jm-loc','jm-exp'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('jm-save-btn').textContent = 'Save Position';
-  }
-  document.getElementById('job-modal').classList.add('open');
-}
-function closeJobModal() { document.getElementById('job-modal').classList.remove('open'); }
-function saveJob() {
-  const title = document.getElementById('jm-title').value.trim();
-  const dept  = document.getElementById('jm-dept').value.trim();
-  const loc   = document.getElementById('jm-loc').value.trim();
-  const exp   = document.getElementById('jm-exp').value.trim();
-  if (!title || !dept || !loc) { alert('Title, department, and location are required.'); return; }
-  const jobs = loadJobs();
-  if (editingJobId) {
-    const i = jobs.findIndex(x => x.id === editingJobId);
-    jobs[i] = { ...jobs[i], title, dept, loc, exp };
-  } else {
-    jobs.push({ id: Date.now(), title, dept, loc, exp });
-  }
-  saveJobs(jobs);
-  renderAdminJobs(); renderPublicJobs();
-  closeJobModal();
-}
-function editJob(id)   { openJobModal(id); }
-function deleteJob(id) {
-  if (!confirm('Delete this position?')) return;
-  saveJobs(loadJobs().filter(x => x.id !== id));
-  renderAdminJobs(); renderPublicJobs();
-}
-
-// ---- ADMIN LOGIN ----
-function openAdmin()  { document.getElementById('admin-panel').classList.add('open'); }
-function closeAdmin() {
-  document.getElementById('admin-panel').classList.remove('open');
-  document.getElementById('login-err').style.display = 'none';
-}
-function doLogin() {
-  const u = document.getElementById('admin-user').value.trim();
-  const p = document.getElementById('admin-pass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    document.getElementById('admin-login-screen').style.display  = 'none';
-    document.getElementById('admin-dashboard').style.display     = 'flex';
-    renderAdminPersons(); renderAdminJobs(); renderAdminProjects();
-    // Pre-fill settings
-    const cn = getCloudName();
-    if (cn) document.getElementById('settings-cloudname').value = cn;
-    const pr = getPresetName();
-    if (pr) document.getElementById('settings-preset').value = pr;
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-  }
-}
-function doLogout() {
-  document.getElementById('admin-dashboard').style.display    = 'none';
-  document.getElementById('admin-login-screen').style.display = 'block';
-  document.getElementById('admin-user').value = '';
-  document.getElementById('admin-pass').value = '';
-  document.getElementById('login-err').style.display = 'none';
-  // reset tabs
-  switchTab('tab-persons', document.querySelector('.admin-tab'));
-}
-
-// ---- SWITCH TAB ----
-function switchTab(tabId, btn) {
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  ['tab-persons','tab-jobs','tab-projects','tab-settings'].forEach(id => {
-    document.getElementById(id).style.display = (id === tabId) ? 'block' : 'none';
-  });
-  if (tabId === 'tab-projects') { renderAdminProjects(); }
-  if (tabId === 'tab-settings') {
-    const cn = getCloudName();
-    if (cn) document.getElementById('settings-cloudname').value = cn;
-    const pr = getPresetName();
-    if (pr) document.getElementById('settings-preset').value = pr;
-  }
-}
-
-// Close on backdrop click
-['admin-panel','person-modal','job-modal','project-modal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', function(e) {
-    if (e.target === this) {
-      if (id === 'admin-panel') closeAdmin();
-      else if (id === 'person-modal') closePersonModal();
-      else if (id === 'job-modal') closeJobModal();
-      else closeProjectModal();
-    }
-  });
-});
-
-// ---- FOOTER ----
-const ftpl = document.getElementById('ftpl').content;
-document.querySelectorAll('[data-footer]').forEach(el => el.appendChild(ftpl.cloneNode(true)));
-
-// ---- RESPONSIVE NAV ----
-const hamburger = document.getElementById('hamburger');
-const deskNav   = document.getElementById('desk-nav');
-function checkNav() {
-  if (window.innerWidth < 900) { hamburger.style.display='block'; deskNav.style.display='none'; }
-  else { hamburger.style.display='none'; deskNav.style.display='flex'; closeMob(); }
-}
-window.addEventListener('resize', checkNav); checkNav();
-function toggleMob() { document.getElementById('mob-menu').classList.toggle('open'); }
-function closeMob()  { document.getElementById('mob-menu').classList.remove('open'); }
-
-// ---- PAGE NAV ----
-const PAGES = ['home','about','services','projects','careers','contact'];
-function go(name) {
-  PAGES.forEach(p => {
-    document.getElementById('pg-'+p).classList.remove('active');
-    const btn = document.getElementById('nb-'+p);
-    if (btn) btn.classList.remove('active');
-  });
-  document.getElementById('pg-'+name).classList.add('active');
-  const btn = document.getElementById('nb-'+name);
-  if (btn) btn.classList.add('active');
-  window.scrollTo({ top:0, behavior:'smooth' });
-  closeMob();
-  if (name === 'about')   renderPublicPersons();
-  if (name === 'careers') renderPublicJobs();
-  if (name === 'projects') renderPublicProjects();
-}
-
-// ---- CONTACT FORM ----
-function submitContact(e) {
-  e.preventDefault();
-  const name    = document.getElementById('cf-name').value;
-  const company = document.getElementById('cf-company').value;
-  const email   = document.getElementById('cf-email').value;
-  const phone   = document.getElementById('cf-phone').value;
-  const subject = document.getElementById('cf-subject').value;
-  const msg     = document.getElementById('cf-msg').value;
-  const body = `Name: ${name}\nCompany: ${company}\nEmail: ${email}\nPhone: ${phone}\n\nMessage:\n${msg}`;
-  window.location.href = `mailto:admin@atmagauravinfra.com?subject=${encodeURIComponent(subject + ' \u2013 ' + name)}&body=${encodeURIComponent(body)}`;
-  document.getElementById('c-ok').style.display = 'block';
-  e.target.reset();
-  setTimeout(() => document.getElementById('c-ok').style.display = 'none', 7000);
-}
-
-// ---- RESPONSIVE GRIDS ----
-function fixContactGrid() {
-  const g = document.getElementById('contact-grid');
-  if (g) g.style.gridTemplateColumns = window.innerWidth < 800 ? '1fr' : '1fr 1.2fr';
-}
-function fixFooterGrid() {
-  document.querySelectorAll('.footer-grid').forEach(g => {
-    g.style.gridTemplateColumns = window.innerWidth < 800 ? '1fr 1fr' : '2fr 1fr 1fr 1.5fr';
-    if (window.innerWidth < 480) g.style.gridTemplateColumns = '1fr';
-  });
-}
-window.addEventListener('resize', fixContactGrid);
-window.addEventListener('resize', fixFooterGrid);
-fixContactGrid(); fixFooterGrid();
-
-
-// ---- PROJECTS DATA ----
-function loadProjects() {
-  try { return JSON.parse(localStorage.getItem('ai_projects')) || defaultProjects(); } catch(e) { return defaultProjects(); }
-}
-function saveProjects(d) { localStorage.setItem('ai_projects', JSON.stringify(d)); }
-
-function defaultProjects() {
-  return [
-    { id:1, title:'Foot Over Bridge at Hiwra Ashram, Buldhana', cat:'Bridge Construction · NHAI', loc:'Buldhana, MH', desc:'Construction of a pedestrian foot over bridge to improve safety and access at Hiwra Ashram on the national highway stretch.', status:'ongoing', img:'https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Construction'] },
-    { id:2, title:'NH 161G – Shegaon to Sangrampur', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Annual maintenance contract covering routine and periodic works including resurfacing, drainage, and road signage.', status:'ongoing', img:'https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
-    { id:3, title:'NH 161G – Sangrampur to MP Border', cat:'Highway Maintenance · NHAI', loc:'Buldhana–MP, MH', desc:'Maintenance of NH 161G from Sangrampur to the Madhya Pradesh border covering bituminous, drainage, and safety works.', status:'ongoing', img:'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana–MP, MH','Maintenance'] },
-    { id:4, title:'NH 548C – Khamgaon to Deulgaon Sakharsha', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Routine and periodic maintenance on NH 548C covering pavement, drainage, and road furniture works.', status:'ongoing', img:'https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
-    { id:5, title:'NH 753C – Dusarbid to Pimpri Sarad', cat:'Highway Maintenance · NHAI', loc:'Jalna–Pulgaon, MH', desc:'Routine and periodic maintenance on the Jalna–Pulgaon section covering bituminous works, drainage, and road furniture.', status:'ongoing', img:'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Jalna–Pulgaon, MH','Maintenance'] },
-  ];
-}
-
-// ---- RENDER PUBLIC PROJECTS ----
-function renderPublicProjects() {
-  const all = loadProjects();
-  const ongoing   = all.filter(p => p.status === 'ongoing');
-  const completed = all.filter(p => p.status === 'completed');
-
-  const makeCard = (p) => {
-    const badge = p.status === 'ongoing'
-      ? '<span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span>'
-      : '<span style="position:absolute;top:12px;left:12px;background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; Completed</span>';
-    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700';
-    const tags = (p.tags||[]).map(t=>'<span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">'+t+'</span>').join('');
-    return '<div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="'+imgSrc+'" alt="'+p.title+'" style="height:195px;">'+badge+'</div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">'+(p.cat||'')+'</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">'+p.title+'</h3>'+(p.desc?'<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">'+p.desc+'</p>':'')+'<div style="display:flex;gap:8px;flex-wrap:wrap;">&#128205; '+(p.loc||'')+' '+tags+'</div></div></div>';
-  };
-
-  const oEl = document.getElementById('projects-public-ongoing');
-  const cEl = document.getElementById('projects-public-completed');
-  const cSec = document.getElementById('public-completed-section');
-  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeCard).join('') : '<p style="color:#9ca3af;padding:20px;">No ongoing projects.</p>';
-  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeCard).join('') : '';
-  if (cSec) cSec.style.display = completed.length ? 'block' : 'none';
-}
-
-// ---- RENDER ADMIN PROJECTS ----
-function renderAdminProjects() {
-  const all = loadProjects();
-  const ongoing   = all.filter(p => p.status === 'ongoing');
-  const completed = all.filter(p => p.status === 'completed');
-
-  const makeAdminCard = (p) => {
-    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=100';
-    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="'+imgSrc+'" alt="'+p.title+'" style="width:56px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.title+'</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">'+(p.cat||'')+'</div><div style="color:#9ca3af;font-size:11px;margin-top:2px;">&#128205; '+(p.loc||'')+'</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editProject('+p.id+')" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteProject('+p.id+')" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>';
-  };
-
-  const oEl = document.getElementById('projects-admin-ongoing');
-  const cEl = document.getElementById('projects-admin-completed');
-  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No ongoing projects. Click + Add Project.</p>';
-  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No completed projects yet.</p>';
-}
-
-// ---- PROJECT CRUD ----
-let editingProjectId = null;
-function openProjectModal(id) {
-  editingProjectId = id || null;
-  const projects = loadProjects();
-  if (id) {
-    const p = projects.find(x => x.id === id);
-    document.getElementById('project-modal-title').textContent = 'Edit Project';
-    document.getElementById('prjm-title').value  = p.title  || '';
-    document.getElementById('prjm-cat').value    = p.cat    || '';
-    document.getElementById('prjm-loc').value    = p.loc    || '';
-    document.getElementById('prjm-desc').value   = p.desc   || '';
-    document.getElementById('prjm-status').value = p.status || 'ongoing';
-    document.getElementById('prjm-img').value    = p.img    || '';
-    document.getElementById('prjm-tags').value   = (p.tags||[]).join(', ');
-    document.getElementById('prjm-save-btn').textContent = 'Update Project';
-  } else {
-    document.getElementById('project-modal-title').textContent = 'Add Project';
-    ['prjm-title','prjm-cat','prjm-loc','prjm-desc','prjm-img','prjm-tags'].forEach(function(i){ document.getElementById(i).value = ''; });
-    document.getElementById('prjm-status').value = 'ongoing';
-    document.getElementById('prjm-save-btn').textContent = 'Save Project';
-  }
-  document.getElementById('project-modal').classList.add('open');
-}
-function closeProjectModal() { document.getElementById('project-modal').classList.remove('open'); }
-function saveProject() {
-  const title  = document.getElementById('prjm-title').value.trim();
-  const cat    = document.getElementById('prjm-cat').value.trim();
-  const loc    = document.getElementById('prjm-loc').value.trim();
-  const desc   = document.getElementById('prjm-desc').value.trim();
-  const status = document.getElementById('prjm-status').value;
-  const img    = document.getElementById('prjm-img').value.trim();
-  const tagsRaw= document.getElementById('prjm-tags').value.trim();
-  const tags   = tagsRaw ? tagsRaw.split(',').map(function(t){return t.trim();}).filter(Boolean) : [];
-  if (!title || !loc) { alert('Title and location are required.'); return; }
-  const projects = loadProjects();
-  if (editingProjectId) {
-    const i = projects.findIndex(function(x){ return x.id === editingProjectId; });
-    projects[i] = Object.assign({}, projects[i], { title, cat, loc, desc, status, img, tags });
-  } else {
-    projects.push({ id: Date.now(), title, cat, loc, desc, status, img, tags });
-  }
-  saveProjects(projects);
-  renderAdminProjects();
-  renderPublicProjects();
-  closeProjectModal();
-}
-function editProject(id)   { openProjectModal(id); }
-function deleteProject(id) {
-  if (!confirm('Delete this project?')) return;
-  saveProjects(loadProjects().filter(function(x){ return x.id !== id; }));
-  renderAdminProjects();
-  renderPublicProjects();
-}
-// ---- INIT ----
-renderPublicPersons();
-renderPublicJobs();
-renderPublicProjects();
-
-// Expose all functions globally so onclick attributes work
-window.getCloudName = getCloudName;
-window.getPresetName = getPresetName;
-window.saveCloudNameFromSettings = saveCloudNameFromSettings;
-window.savePresetFromSettings = savePresetFromSettings;
-window.handlePhotoUpload = handlePhotoUpload;
-window.clearPhoto = clearPhoto;
-window.setPhotoPreview = setPhotoPreview;
-window.loadPersons = loadPersons;
-window.savePersons = savePersons;
-window.loadJobs = loadJobs;
-window.saveJobs = saveJobs;
-window.defaultPersons = defaultPersons;
-window.defaultJobs = defaultJobs;
-window.renderPublicPersons = renderPublicPersons;
-window.renderPublicJobs = renderPublicJobs;
-window.renderAdminPersons = renderAdminPersons;
-window.renderAdminJobs = renderAdminJobs;
-window.openPersonModal = openPersonModal;
-window.closePersonModal = closePersonModal;
-window.savePerson = savePerson;
-window.editPerson = editPerson;
-window.deletePerson = deletePerson;
-window.openJobModal = openJobModal;
-window.closeJobModal = closeJobModal;
-window.saveJob = saveJob;
-window.editJob = editJob;
-window.deleteJob = deleteJob;
-window.openAdmin = openAdmin;
-window.closeAdmin = closeAdmin;
-window.doLogin = doLogin;
-window.doLogout = doLogout;
-window.switchTab = switchTab;
-window.checkNav = checkNav;
-window.toggleMob = toggleMob;
-window.closeMob = closeMob;
-window.go = go;
-window.submitContact = submitContact;
-window.fixContactGrid = fixContactGrid;
-window.fixFooterGrid = fixFooterGrid;
-window.loadProjects = loadProjects;
-window.saveProjects = saveProjects;
-window.defaultProjects = defaultProjects;
-window.renderPublicProjects = renderPublicProjects;
-window.renderAdminProjects = renderAdminProjects;
-window.openProjectModal = openProjectModal;
-window.closeProjectModal = closeProjectModal;
-window.saveProject = saveProject;
-window.editProject = editProject;
-window.deleteProject = deleteProject;
-</script>
 </body>
 </html>
