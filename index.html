@@ -120,6 +120,7 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
       <div class="admin-tabs" id="admin-tab-bar">
         <button class="admin-tab active" onclick="switchTab('tab-persons',this)">&#128100; Key Persons</button>
         <button class="admin-tab" onclick="switchTab('tab-jobs',this)">&#128188; Open Positions</button>
+        <button class="admin-tab" onclick="switchTab('tab-projects',this)">&#127959; Projects</button>
         <button class="admin-tab" onclick="switchTab('tab-settings',this)">&#9881;&#65039; Settings</button>
       </div>
 
@@ -139,6 +140,26 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
           <button onclick="openJobModal()" class="btn-green">+ Add Position</button>
         </div>
         <div id="jobs-admin-list"></div>
+      </div>
+
+      <!-- TAB: PROJECTS -->
+      <div id="tab-projects" class="admin-body" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Projects</h3>
+          <button onclick="openProjectModal()" class="btn-green">+ Add Project</button>
+        </div>
+        <!-- Ongoing -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; ONGOING</span>
+          <span style="font-size:13px;color:#6b7280;">Projects currently under execution</span>
+        </div>
+        <div id="projects-admin-ongoing"></div>
+        <!-- Completed -->
+        <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px;">
+          <span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; COMPLETED</span>
+          <span style="font-size:13px;color:#6b7280;">Past completed projects</span>
+        </div>
+        <div id="projects-admin-completed"></div>
       </div>
 
       <!-- TAB: SETTINGS -->
@@ -237,6 +258,31 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
   </div>
 </div>
 
+<!-- ===== PROJECT MODAL ===== -->
+<div id="project-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="project-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Project</h3>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Project Title *</label><input id="prjm-title" type="text" class="fi" placeholder="e.g. NH 161G &#8211; Shegaon to Sangrampur"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Category *</label><input id="prjm-cat" type="text" class="fi" placeholder="e.g. Highway Maintenance &#183; NHAI"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Location *</label><input id="prjm-loc" type="text" class="fi" placeholder="e.g. Buldhana, MH"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Description</label><textarea id="prjm-desc" rows="3" class="fi" style="resize:vertical;" placeholder="Brief project description&#8230;"></textarea></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Status *</label>
+        <select id="prjm-status" class="fi" style="appearance:auto;cursor:pointer;">
+          <option value="ongoing">&#9679; Ongoing</option>
+          <option value="completed">&#10003; Completed</option>
+        </select>
+      </div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Image URL <span style="color:#9ca3af;font-weight:400;">(optional &#8212; paste Unsplash or any image URL)</span></label><input id="prjm-img" type="url" class="fi" placeholder="https://images.unsplash.com/&#8230;"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Tags <span style="color:#9ca3af;font-weight:400;">(comma separated, e.g. Buldhana MH, Maintenance)</span></label><input id="prjm-tags" type="text" class="fi" placeholder="Buldhana MH, Maintenance"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closeProjectModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
+      <button onclick="saveProject()" class="btn-orange" style="padding:9px 18px;" id="prjm-save-btn">Save Project</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== NAVBAR ===== -->
 <nav id="navbar">
   <div class="nav-inner">
@@ -245,8 +291,8 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
       </div>
       <div style="text-align:left;">
-        <div style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;font-size:14px;line-height:1.2;">ATMAGAURAV INFRA</div>
-        <div style="color:#e8730a;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div>
+        <div style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;font-size:20px;line-height:1.2;">ATMAGAURAV INFRA</div>
+        <div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div>
       </div>
     </button>
     <div id="desk-nav" style="display:flex;align-items:center;gap:2px;">
@@ -416,16 +462,16 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
 
 <!-- ==================== PROJECTS ==================== -->
 <div id="pg-projects" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Work</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Projects</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">All 5 ongoing projects shaping Maharashtra's infrastructure.</p></div></div>
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Work</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Projects</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Infrastructure projects shaping Maharashtra's future.</p></div></div>
   <div class="sec" style="background:#fff;">
     <div class="inner">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#9679; ONGOING</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Currently Under Execution</h2></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;">
-        <div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700" alt="FOB" style="height:195px;"><span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Bridge Construction &#183; NHAI</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">Foot Over Bridge at Hiwra Ashram, Buldhana</h3><p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">Construction of a pedestrian foot over bridge to improve safety and access at Hiwra Ashram on the national highway stretch.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128205; Buldhana, MH</span><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#127959; Construction</span></div></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700" alt="NH161G-1" style="height:195px;"><span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance &#183; NHAI</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">NH 161G &#8211; Shegaon to Sangrampur</h3><p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">Annual maintenance contract covering routine and periodic works including resurfacing, drainage, and road signage.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128205; Buldhana, MH</span><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128739; Maintenance</span></div></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700" alt="NH161G-2" style="height:195px;"><span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance &#183; NHAI</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">NH 161G &#8211; Sangrampur to MP Border</h3><p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">Maintenance of NH 161G from Sangrampur to the Madhya Pradesh border covering bituminous, drainage, and safety works.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128205; Buldhana&#8211;MP, MH</span><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128739; Maintenance</span></div></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700" alt="NH548C" style="height:195px;"><span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance &#183; NHAI</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">NH 548C &#8211; Khamgaon to Deulgaon Sakharsha</h3><p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">Routine and periodic maintenance on NH 548C covering pavement, drainage, and road furniture works.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128205; Buldhana, MH</span><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128739; Maintenance</span></div></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700" alt="NH753C" style="height:195px;"><span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance &#183; NHAI</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">NH 753C &#8211; Dusarbid to Pimpri Sarad</h3><p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">Routine and periodic maintenance on the Jalna&#8211;Pulgaon section covering bituminous works, drainage, and road furniture.</p><div style="display:flex;gap:8px;flex-wrap:wrap;"><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128205; Jalna&#8211;Pulgaon, MH</span><span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">&#128739; Maintenance</span></div></div></div>
+      <!-- Ongoing -->
+      <div id="public-ongoing-header" style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#9679; ONGOING</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Currently Under Execution</h2></div>
+      <div id="projects-public-ongoing" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:52px;"></div>
+      <!-- Completed -->
+      <div id="public-completed-section" style="display:none;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#10003; COMPLETED</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Past Projects</h2></div>
+        <div id="projects-public-completed" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;"></div>
       </div>
     </div>
   </div>
@@ -508,7 +554,7 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
         <div>
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
             <div style="width:38px;height:38px;background:#e8730a;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg></div>
-            <div><div style="font-family:'Playfair Display',serif;font-weight:700;font-size:13px;color:#fff;line-height:1.2;">ATMAGAURAV INFRA</div><div style="color:#e8730a;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div></div>
+            <div><div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:#fff;line-height:1.2;">ATMAGAURAV INFRA</div><div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div></div>
           </div>
           <p style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.8;max-width:260px;">Building the infrastructure of tomorrow &#8212; highways, bridges, and roads that connect communities across India.</p>
         </div>
@@ -797,7 +843,7 @@ function doLogin() {
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     document.getElementById('admin-login-screen').style.display  = 'none';
     document.getElementById('admin-dashboard').style.display     = 'flex';
-    renderAdminPersons(); renderAdminJobs();
+    renderAdminPersons(); renderAdminJobs(); renderAdminProjects();
     // Pre-fill settings
     const cn = getCloudName();
     if (cn) document.getElementById('settings-cloudname').value = cn;
@@ -821,9 +867,10 @@ function doLogout() {
 function switchTab(tabId, btn) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['tab-persons','tab-jobs','tab-settings'].forEach(id => {
+  ['tab-persons','tab-jobs','tab-projects','tab-settings'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId) ? 'block' : 'none';
   });
+  if (tabId === 'tab-projects') { renderAdminProjects(); }
   if (tabId === 'tab-settings') {
     const cn = getCloudName();
     if (cn) document.getElementById('settings-cloudname').value = cn;
@@ -833,12 +880,13 @@ function switchTab(tabId, btn) {
 }
 
 // Close on backdrop click
-['admin-panel','person-modal','job-modal'].forEach(id => {
+['admin-panel','person-modal','job-modal','project-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) {
       if (id === 'admin-panel') closeAdmin();
       else if (id === 'person-modal') closePersonModal();
-      else closeJobModal();
+      else if (id === 'job-modal') closeJobModal();
+      else closeProjectModal();
     }
   });
 });
@@ -873,6 +921,7 @@ function go(name) {
   closeMob();
   if (name === 'about')   renderPublicPersons();
   if (name === 'careers') renderPublicJobs();
+  if (name === 'projects') renderPublicProjects();
 }
 
 // ---- CONTACT FORM ----
@@ -906,9 +955,121 @@ window.addEventListener('resize', fixContactGrid);
 window.addEventListener('resize', fixFooterGrid);
 fixContactGrid(); fixFooterGrid();
 
+
+// ---- PROJECTS DATA ----
+function loadProjects() {
+  try { return JSON.parse(localStorage.getItem('ai_projects')) || defaultProjects(); } catch(e) { return defaultProjects(); }
+}
+function saveProjects(d) { localStorage.setItem('ai_projects', JSON.stringify(d)); }
+
+function defaultProjects() {
+  return [
+    { id:1, title:'Foot Over Bridge at Hiwra Ashram, Buldhana', cat:'Bridge Construction · NHAI', loc:'Buldhana, MH', desc:'Construction of a pedestrian foot over bridge to improve safety and access at Hiwra Ashram on the national highway stretch.', status:'ongoing', img:'https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Construction'] },
+    { id:2, title:'NH 161G – Shegaon to Sangrampur', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Annual maintenance contract covering routine and periodic works including resurfacing, drainage, and road signage.', status:'ongoing', img:'https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
+    { id:3, title:'NH 161G – Sangrampur to MP Border', cat:'Highway Maintenance · NHAI', loc:'Buldhana–MP, MH', desc:'Maintenance of NH 161G from Sangrampur to the Madhya Pradesh border covering bituminous, drainage, and safety works.', status:'ongoing', img:'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana–MP, MH','Maintenance'] },
+    { id:4, title:'NH 548C – Khamgaon to Deulgaon Sakharsha', cat:'Highway Maintenance · NHAI', loc:'Buldhana, MH', desc:'Routine and periodic maintenance on NH 548C covering pavement, drainage, and road furniture works.', status:'ongoing', img:'https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Buldhana, MH','Maintenance'] },
+    { id:5, title:'NH 753C – Dusarbid to Pimpri Sarad', cat:'Highway Maintenance · NHAI', loc:'Jalna–Pulgaon, MH', desc:'Routine and periodic maintenance on the Jalna–Pulgaon section covering bituminous works, drainage, and road furniture.', status:'ongoing', img:'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700', tags:['Jalna–Pulgaon, MH','Maintenance'] },
+  ];
+}
+
+// ---- RENDER PUBLIC PROJECTS ----
+function renderPublicProjects() {
+  const all = loadProjects();
+  const ongoing   = all.filter(p => p.status === 'ongoing');
+  const completed = all.filter(p => p.status === 'completed');
+
+  const makeCard = (p) => {
+    const badge = p.status === 'ongoing'
+      ? '<span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span>'
+      : '<span style="position:absolute;top:12px;left:12px;background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; Completed</span>';
+    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700';
+    const tags = (p.tags||[]).map(t=>'<span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">'+t+'</span>').join('');
+    return '<div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="'+imgSrc+'" alt="'+p.title+'" style="height:195px;">'+badge+'</div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">'+(p.cat||'')+'</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">'+p.title+'</h3>'+(p.desc?'<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">'+p.desc+'</p>':'')+'<div style="display:flex;gap:8px;flex-wrap:wrap;">&#128205; '+(p.loc||'')+' '+tags+'</div></div></div>';
+  };
+
+  const oEl = document.getElementById('projects-public-ongoing');
+  const cEl = document.getElementById('projects-public-completed');
+  const cSec = document.getElementById('public-completed-section');
+  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeCard).join('') : '<p style="color:#9ca3af;padding:20px;">No ongoing projects.</p>';
+  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeCard).join('') : '';
+  if (cSec) cSec.style.display = completed.length ? 'block' : 'none';
+}
+
+// ---- RENDER ADMIN PROJECTS ----
+function renderAdminProjects() {
+  const all = loadProjects();
+  const ongoing   = all.filter(p => p.status === 'ongoing');
+  const completed = all.filter(p => p.status === 'completed');
+
+  const makeAdminCard = (p) => {
+    const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=100';
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="'+imgSrc+'" alt="'+p.title+'" style="width:56px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.title+'</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">'+(p.cat||'')+'</div><div style="color:#9ca3af;font-size:11px;margin-top:2px;">&#128205; '+(p.loc||'')+'</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editProject('+p.id+')" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteProject('+p.id+')" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>';
+  };
+
+  const oEl = document.getElementById('projects-admin-ongoing');
+  const cEl = document.getElementById('projects-admin-completed');
+  if (oEl) oEl.innerHTML = ongoing.length ? ongoing.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No ongoing projects. Click + Add Project.</p>';
+  if (cEl) cEl.innerHTML = completed.length ? completed.map(makeAdminCard).join('') : '<p style="color:#9ca3af;padding:16px;text-align:center;">No completed projects yet.</p>';
+}
+
+// ---- PROJECT CRUD ----
+let editingProjectId = null;
+function openProjectModal(id) {
+  editingProjectId = id || null;
+  const projects = loadProjects();
+  if (id) {
+    const p = projects.find(x => x.id === id);
+    document.getElementById('project-modal-title').textContent = 'Edit Project';
+    document.getElementById('prjm-title').value  = p.title  || '';
+    document.getElementById('prjm-cat').value    = p.cat    || '';
+    document.getElementById('prjm-loc').value    = p.loc    || '';
+    document.getElementById('prjm-desc').value   = p.desc   || '';
+    document.getElementById('prjm-status').value = p.status || 'ongoing';
+    document.getElementById('prjm-img').value    = p.img    || '';
+    document.getElementById('prjm-tags').value   = (p.tags||[]).join(', ');
+    document.getElementById('prjm-save-btn').textContent = 'Update Project';
+  } else {
+    document.getElementById('project-modal-title').textContent = 'Add Project';
+    ['prjm-title','prjm-cat','prjm-loc','prjm-desc','prjm-img','prjm-tags'].forEach(function(i){ document.getElementById(i).value = ''; });
+    document.getElementById('prjm-status').value = 'ongoing';
+    document.getElementById('prjm-save-btn').textContent = 'Save Project';
+  }
+  document.getElementById('project-modal').classList.add('open');
+}
+function closeProjectModal() { document.getElementById('project-modal').classList.remove('open'); }
+function saveProject() {
+  const title  = document.getElementById('prjm-title').value.trim();
+  const cat    = document.getElementById('prjm-cat').value.trim();
+  const loc    = document.getElementById('prjm-loc').value.trim();
+  const desc   = document.getElementById('prjm-desc').value.trim();
+  const status = document.getElementById('prjm-status').value;
+  const img    = document.getElementById('prjm-img').value.trim();
+  const tagsRaw= document.getElementById('prjm-tags').value.trim();
+  const tags   = tagsRaw ? tagsRaw.split(',').map(function(t){return t.trim();}).filter(Boolean) : [];
+  if (!title || !loc) { alert('Title and location are required.'); return; }
+  const projects = loadProjects();
+  if (editingProjectId) {
+    const i = projects.findIndex(function(x){ return x.id === editingProjectId; });
+    projects[i] = Object.assign({}, projects[i], { title, cat, loc, desc, status, img, tags });
+  } else {
+    projects.push({ id: Date.now(), title, cat, loc, desc, status, img, tags });
+  }
+  saveProjects(projects);
+  renderAdminProjects();
+  renderPublicProjects();
+  closeProjectModal();
+}
+function editProject(id)   { openProjectModal(id); }
+function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  saveProjects(loadProjects().filter(function(x){ return x.id !== id; }));
+  renderAdminProjects();
+  renderPublicProjects();
+}
 // ---- INIT ----
 renderPublicPersons();
 renderPublicJobs();
+renderPublicProjects();
 </script>
 </body>
 </html>
