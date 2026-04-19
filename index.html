@@ -177,6 +177,33 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
       <div id="tab-settings" class="admin-body" style="display:none;">
         <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:20px;">&#9881;&#65039; Settings</h3>
 
+        <!-- Company Logo -->
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin-bottom:20px;">
+          <h4 style="color:#0d1b3e;font-size:15px;font-weight:700;margin-bottom:10px;">&#127981; Company Logo</h4>
+          <p style="color:#6b7280;font-size:13px;line-height:1.7;margin-bottom:14px;">Upload your company logo. It will replace the default icon in the navbar and footer. For best results use a square PNG with transparent background.</p>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div id="logo-preview-wrap" style="width:64px;height:64px;background:#e8730a;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+              <img id="logo-settings-preview" src="" alt="Logo" style="display:none;width:64px;height:64px;object-fit:contain;">
+              <svg id="logo-settings-svg" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
+            </div>
+            <div style="flex:1;min-width:200px;">
+              <label for="logo-upload-input" id="logo-upload-label" style="display:flex;align-items:center;gap:10px;background:#fff;border:2px dashed #d1d5db;border-radius:8px;padding:12px 16px;cursor:pointer;font-size:13px;color:#374151;transition:border-color .2s;margin-bottom:8px;">
+                <span style="font-size:20px;">&#128247;</span>
+                <span id="logo-upload-filename">Click to upload logo&hellip;</span>
+              </label>
+              <input type="file" id="logo-upload-input" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+              <div id="logo-upload-progress" style="display:none;margin-bottom:6px;">
+                <div style="background:#e5e7eb;border-radius:4px;height:5px;overflow:hidden;"><div id="logo-progress-bar" style="height:100%;background:#e8730a;width:0%;transition:width .3s;border-radius:4px;"></div></div>
+                <div id="logo-upload-status" style="font-size:12px;color:#6b7280;margin-top:4px;">Uploading&hellip;</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onclick="applyLogoFromSettings()" class="btn-orange" style="padding:8px 16px;font-size:12px;">&#10003; Apply Logo</button>
+                <button onclick="removeLogo()" class="btn-red" style="padding:8px 14px;font-size:12px;">&#10005; Remove</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Cloudinary -->
         <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:20px;margin-bottom:20px;">
           <h4 style="color:#0369a1;font-size:15px;font-weight:700;margin-bottom:10px;">&#128759; Cloudinary Photo Upload</h4>
@@ -354,8 +381,9 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
 <nav id="navbar">
   <div class="nav-inner">
     <button onclick="go('home')" style="display:flex;align-items:center;gap:11px;background:none;border:none;cursor:pointer;padding:0;">
-      <div style="width:40px;height:40px;background:#e8730a;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
+      <div id="navbar-logo-wrap" style="width:40px;height:40px;background:#e8730a;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">
+        <img id="navbar-logo-img" src="" alt="Logo" style="display:none;width:40px;height:40px;object-fit:contain;">
+        <svg id="navbar-logo-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
       </div>
       <div style="text-align:left;">
         <div style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;font-size:20px;line-height:1.2;">ATMAGAURAV INFRA</div>
@@ -615,7 +643,7 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:36px;margin-bottom:44px;" class="footer-grid">
         <div>
           <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
-            <div style="width:38px;height:38px;background:#e8730a;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg></div>
+            <div id="footer-logo-wrap" style="width:38px;height:38px;background:#e8730a;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><img id="footer-logo-img" src="" alt="Logo" style="display:none;width:38px;height:38px;object-fit:contain;"><svg id="footer-logo-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg></div>
             <div><div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:#fff;line-height:1.2;">ATMAGAURAV INFRA</div><div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div></div>
           </div>
           <p style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.8;max-width:260px;">Building the infrastructure of tomorrow &#8212; highways, bridges, and roads that connect communities across India.</p>
@@ -656,6 +684,119 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
 <script>
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'admin123';
+
+
+// ---- LOGO MANAGEMENT ----
+function getLogoUrl() { return localStorage.getItem('ai_logo') || ''; }
+function saveLogoUrl(url) { localStorage.setItem('ai_logo', url); }
+
+function applyLogo(url) {
+  // Navbar
+  var navImg = document.getElementById('navbar-logo-img');
+  var navSvg = document.getElementById('navbar-logo-svg');
+  var navWrap = document.getElementById('navbar-logo-wrap');
+  // Footer (may be cloned into multiple footers)
+  var footImgs = document.querySelectorAll('#footer-logo-img');
+  var footSvgs = document.querySelectorAll('#footer-logo-svg');
+
+  if (url) {
+    if (navImg) { navImg.src = url; navImg.style.display = 'block'; }
+    if (navSvg) { navSvg.style.display = 'none'; }
+    if (navWrap) { navWrap.style.background = 'transparent'; navWrap.style.padding = '0'; }
+    footImgs.forEach(function(img) { img.src = url; img.style.display = 'block'; });
+    footSvgs.forEach(function(svg) { svg.style.display = 'none'; });
+    // Also update settings preview
+    var prev = document.getElementById('logo-settings-preview');
+    var prevSvg = document.getElementById('logo-settings-svg');
+    if (prev) { prev.src = url; prev.style.display = 'block'; }
+    if (prevSvg) { prevSvg.style.display = 'none'; }
+    document.getElementById('logo-preview-wrap').style.background = 'transparent';
+  } else {
+    if (navImg) { navImg.style.display = 'none'; }
+    if (navSvg) { navSvg.style.display = 'block'; }
+    if (navWrap) { navWrap.style.background = '#e8730a'; navWrap.style.padding = ''; }
+    footImgs.forEach(function(img) { img.style.display = 'none'; });
+    footSvgs.forEach(function(svg) { svg.style.display = 'block'; });
+    var prev = document.getElementById('logo-settings-preview');
+    var prevSvg = document.getElementById('logo-settings-svg');
+    if (prev) { prev.style.display = 'none'; }
+    if (prevSvg) { prevSvg.style.display = 'block'; }
+    document.getElementById('logo-preview-wrap').style.background = '#e8730a';
+  }
+}
+
+function applyLogoFromSettings() {
+  var url = getLogoUrl();
+  if (!url) { alert('Please upload a logo first.'); return; }
+  applyLogo(url);
+  // Show confirmation
+  var st = document.getElementById('logo-upload-status');
+  if (st) { st.textContent = '\u2705 Logo applied!'; st.style.color = '#16a34a'; st.style.display = 'block'; setTimeout(function(){ st.style.display = 'none'; }, 3000); }
+}
+
+function removeLogo() {
+  if (!confirm('Remove the current logo and restore the default icon?')) return;
+  saveLogoUrl('');
+  applyLogo('');
+  document.getElementById('logo-upload-filename').textContent = 'Click to upload logo\u2026';
+  document.getElementById('logo-upload-label').style.borderColor = '#d1d5db';
+}
+
+async function handleLogoUpload(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { alert('Logo must be under 3 MB.'); input.value = ''; return; }
+
+  var cloudName = getCloudName();
+  if (!cloudName) {
+    // No Cloudinary — store as base64 locally (logo is small, this is fine)
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      saveLogoUrl(dataUrl);
+      applyLogo(dataUrl);
+      document.getElementById('logo-upload-filename').textContent = file.name;
+      document.getElementById('logo-upload-label').style.borderColor = '#e8730a';
+      var st = document.getElementById('logo-upload-status');
+      if (st) { st.textContent = '\u2705 Logo saved locally!'; st.style.color = '#16a34a'; st.style.display = 'block'; setTimeout(function(){ st.style.display = 'none'; }, 3000); }
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  // Upload to Cloudinary
+  var prog  = document.getElementById('logo-upload-progress');
+  var bar   = document.getElementById('logo-progress-bar');
+  var stat  = document.getElementById('logo-upload-status');
+  prog.style.display = 'block';
+  bar.style.width = '20%';
+  stat.textContent = 'Uploading\u2026';
+  stat.style.color = '#6b7280';
+  document.getElementById('logo-upload-filename').textContent = file.name;
+
+  try {
+    var fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', getPresetName());
+    fd.append('folder', 'atmagaurav_infra/branding');
+    bar.style.width = '55%';
+    var res = await fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', { method:'POST', body:fd });
+    bar.style.width = '90%';
+    if (!res.ok) { var e = await res.json(); throw new Error(e.error ? e.error.message : 'Upload failed'); }
+    var data = await res.json();
+    bar.style.width = '100%';
+    stat.textContent = '\u2705 Logo uploaded!';
+    stat.style.color = '#16a34a';
+    saveLogoUrl(data.secure_url);
+    applyLogo(data.secure_url);
+    document.getElementById('logo-upload-label').style.borderColor = '#e8730a';
+    setTimeout(function(){ prog.style.display = 'none'; bar.style.width = '0%'; }, 2500);
+  } catch(err) {
+    bar.style.width = '0%';
+    stat.textContent = '\u274C Failed: ' + err.message;
+    stat.style.color = '#dc2626';
+  }
+}
 
 // ---- CLOUDINARY ----
 function getCloudName()   { return localStorage.getItem('ai_cloudname') || ''; }
@@ -940,6 +1081,17 @@ function switchTab(tabId, btn) {
     if (cn) document.getElementById('settings-cloudname').value = cn;
     const pr = getPresetName();
     if (pr) document.getElementById('settings-preset').value = pr;
+    // Load logo preview in settings
+    var savedLogo = getLogoUrl();
+    if (savedLogo) {
+      var prev = document.getElementById('logo-settings-preview');
+      var prevSvg = document.getElementById('logo-settings-svg');
+      if (prev) { prev.src = savedLogo; prev.style.display = 'block'; }
+      if (prevSvg) { prevSvg.style.display = 'none'; }
+      document.getElementById('logo-preview-wrap').style.background = 'transparent';
+      document.getElementById('logo-upload-filename').textContent = 'Logo uploaded';
+      document.getElementById('logo-upload-label').style.borderColor = '#e8730a';
+    }
   }
 }
 
@@ -1363,8 +1515,19 @@ renderPublicPersons();
 renderPublicJobs();
 renderPublicProjects();
 renderPublicServices();
+// Load saved logo
+(function(){ var l = getLogoUrl(); if(l) applyLogo(l); })();
+
+// Re-apply logo to footer after it's cloned
+document.querySelectorAll('[data-footer]').forEach(function(el) { el.addEventListener('DOMNodeInserted', function(){ var l = getLogoUrl(); if(l) applyLogo(l); }, {once:true}); });
 
 // Expose functions globally for onclick attributes
+window.getLogoUrl = getLogoUrl;
+window.saveLogoUrl = saveLogoUrl;
+window.applyLogo = applyLogo;
+window.applyLogoFromSettings = applyLogoFromSettings;
+window.removeLogo = removeLogo;
+window.handleLogoUpload = handleLogoUpload;
 window.getCloudName = getCloudName;
 window.getPresetName = getPresetName;
 window.saveCloudNameFromSettings = saveCloudNameFromSettings;
