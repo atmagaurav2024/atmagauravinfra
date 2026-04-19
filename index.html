@@ -7,20 +7,7 @@
 <meta name="description" content="Building India's Infrastructure of Tomorrow — highways, bridges, and road safety solutions across Maharashtra and beyond.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F3D7;</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com">window.handleServicePhotoUpload = handleServicePhotoUpload;
-window.clearServicePhoto = clearServicePhoto;
-window.setServicePhotoPreview = setServicePhotoPreview;
-window.renderPublicServices = renderPublicServices;
-window.renderAdminServices = renderAdminServices;
-window.openServiceModal = openServiceModal;
-window.closeServiceModal = closeServiceModal;
-window.saveService = saveService;
-window.editService = editService;
-window.deleteService = deleteService;
-window.handleProjectPhotoUpload = handleProjectPhotoUpload;
-window.clearProjectPhoto = clearProjectPhoto;
-window.setProjectPhotoPreview = setProjectPhotoPreview;
-</script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Open Sans','sans-serif'],serif:['Playfair Display','Georgia','serif']}}}}</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -1376,6 +1363,73 @@ renderPublicPersons();
 renderPublicJobs();
 renderPublicProjects();
 renderPublicServices();
+
+// Expose functions globally for onclick attributes
+window.getCloudName = getCloudName;
+window.getPresetName = getPresetName;
+window.saveCloudNameFromSettings = saveCloudNameFromSettings;
+window.savePresetFromSettings = savePresetFromSettings;
+window.handlePhotoUpload = handlePhotoUpload;
+window.clearPhoto = clearPhoto;
+window.setPhotoPreview = setPhotoPreview;
+window.loadPersons = loadPersons;
+window.savePersons = savePersons;
+window.loadJobs = loadJobs;
+window.saveJobs = saveJobs;
+window.defaultPersons = defaultPersons;
+window.defaultJobs = defaultJobs;
+window.renderPublicPersons = renderPublicPersons;
+window.renderPublicJobs = renderPublicJobs;
+window.renderAdminPersons = renderAdminPersons;
+window.renderAdminJobs = renderAdminJobs;
+window.openPersonModal = openPersonModal;
+window.closePersonModal = closePersonModal;
+window.savePerson = savePerson;
+window.editPerson = editPerson;
+window.deletePerson = deletePerson;
+window.openJobModal = openJobModal;
+window.closeJobModal = closeJobModal;
+window.saveJob = saveJob;
+window.editJob = editJob;
+window.deleteJob = deleteJob;
+window.openAdmin = openAdmin;
+window.closeAdmin = closeAdmin;
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.switchTab = switchTab;
+window.checkNav = checkNav;
+window.toggleMob = toggleMob;
+window.closeMob = closeMob;
+window.go = go;
+window.submitContact = submitContact;
+window.fixContactGrid = fixContactGrid;
+window.fixFooterGrid = fixFooterGrid;
+window.handleProjectPhotoUpload = handleProjectPhotoUpload;
+window.clearProjectPhoto = clearProjectPhoto;
+window.setProjectPhotoPreview = setProjectPhotoPreview;
+window.loadServices = loadServices;
+window.saveServices = saveServices;
+window.defaultServices = defaultServices;
+window.handleServicePhotoUpload = handleServicePhotoUpload;
+window.clearServicePhoto = clearServicePhoto;
+window.setServicePhotoPreview = setServicePhotoPreview;
+window.renderPublicServices = renderPublicServices;
+window.renderAdminServices = renderAdminServices;
+window.openServiceModal = openServiceModal;
+window.closeServiceModal = closeServiceModal;
+window.saveService = saveService;
+window.editService = editService;
+window.deleteService = deleteService;
+window.loadProjects = loadProjects;
+window.saveProjects = saveProjects;
+window.defaultProjects = defaultProjects;
+window.renderPublicProjects = renderPublicProjects;
+window.renderAdminProjects = renderAdminProjects;
+window.openProjectModal = openProjectModal;
+window.closeProjectModal = closeProjectModal;
+window.saveProject = saveProject;
+window.editProject = editProject;
+window.deleteProject = deleteProject;
 </script>
 </body>
 </html>
