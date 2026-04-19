@@ -7,7 +7,20 @@
 <meta name="description" content="Building India's Infrastructure of Tomorrow — highways, bridges, and road safety solutions across Maharashtra and beyond.">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x1F3D7;</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com">window.handleServicePhotoUpload = handleServicePhotoUpload;
+window.clearServicePhoto = clearServicePhoto;
+window.setServicePhotoPreview = setServicePhotoPreview;
+window.renderPublicServices = renderPublicServices;
+window.renderAdminServices = renderAdminServices;
+window.openServiceModal = openServiceModal;
+window.closeServiceModal = closeServiceModal;
+window.saveService = saveService;
+window.editService = editService;
+window.deleteService = deleteService;
+window.handleProjectPhotoUpload = handleProjectPhotoUpload;
+window.clearProjectPhoto = clearProjectPhoto;
+window.setProjectPhotoPreview = setProjectPhotoPreview;
+</script>
 <script>tailwind.config={theme:{extend:{fontFamily:{sans:['Open Sans','sans-serif'],serif:['Playfair Display','Georgia','serif']}}}}</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -83,8 +96,577 @@ body{font-family:'Open Sans',sans-serif;background:#fff;color:#111827}
 @media(max-width:900px){#desk-nav{display:none!important}#hamburger{display:block!important}.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr 1fr!important}.g4{grid-template-columns:1fr 1fr!important}.order-r{order:-1!important}}
 @media(max-width:600px){.g3{grid-template-columns:1fr!important}.g4{grid-template-columns:1fr!important}.ph h1{font-size:36px!important}.hero-h1{font-size:clamp(32px,9vw,60px)!important}.g-half{grid-template-columns:1fr!important}}
 </style>
+
+</head>
+<body>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div id="admin-panel">
+  <div class="admin-box">
+    <!-- LOGIN SCREEN -->
+    <div id="admin-login-screen">
+      <div class="admin-header">
+        <span style="font-family:'Playfair Display',serif;font-weight:700;font-size:16px;">&#128274; Admin Login</span>
+        <button onclick="closeAdmin()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;">&#x2715;</button>
+      </div>
+      <div class="admin-login-wrap">
+        <div style="font-size:44px;margin-bottom:14px;">&#127959;&#65039;</div>
+        <h2 style="font-family:'Playfair Display',serif;color:#0d1b3e;margin-bottom:8px;font-size:22px;">Admin Access</h2>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:24px;">Enter credentials to manage website content</p>
+        <div style="max-width:320px;margin:0 auto;display:flex;flex-direction:column;gap:14px;">
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Username</label><input id="admin-user" type="text" placeholder="admin" class="fi" onkeydown="if(event.key==='Enter')doLogin()"></div>
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Password</label><input id="admin-pass" type="password" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" class="fi" onkeydown="if(event.key==='Enter')doLogin()"></div>
+          <button onclick="doLogin()" class="btn-orange" style="justify-content:center;padding:11px;">Login</button>
+          <div id="login-err" style="display:none;color:#dc2626;font-size:13px;text-align:center;background:#fef2f2;padding:8px;border-radius:6px;">&#10060; Invalid credentials</div>
+        </div>
+      </div>
+    </div>
+    <!-- DASHBOARD -->
+    <div id="admin-dashboard" style="display:none;flex-direction:column;flex:1;">
+      <div class="admin-header">
+        <span style="font-family:'Playfair Display',serif;font-weight:700;font-size:16px;">&#9881;&#65039; Admin Dashboard</span>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span style="font-size:12px;color:rgba(255,255,255,.7);">Logged in as Admin</span>
+          <button onclick="doLogout()" style="background:#e8730a;border:none;color:#fff;cursor:pointer;font-size:12px;padding:5px 12px;border-radius:4px;font-family:'Open Sans',sans-serif;">Logout</button>
+          <button onclick="closeAdmin()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;">&#x2715;</button>
+        </div>
+      </div>
+      <div class="admin-tabs" id="admin-tab-bar">
+        <button class="admin-tab active" onclick="switchTab('tab-persons',this)">&#128100; Key Persons</button>
+        <button class="admin-tab" onclick="switchTab('tab-jobs',this)">&#128188; Open Positions</button>
+        <button class="admin-tab" onclick="switchTab('tab-services',this)">&#128736;&#65039; Services</button>
+        <button class="admin-tab" onclick="switchTab('tab-projects',this)">&#127959; Projects</button>
+        <button class="admin-tab" onclick="switchTab('tab-settings',this)">&#9881;&#65039; Settings</button>
+      </div>
+
+      <!-- TAB: KEY PERSONS -->
+      <div id="tab-persons" class="admin-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Key Persons</h3>
+          <button onclick="openPersonModal()" class="btn-green">+ Add Person</button>
+        </div>
+        <div id="persons-admin-list"></div>
+      </div>
+
+      <!-- TAB: OPEN POSITIONS -->
+      <div id="tab-jobs" class="admin-body" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Open Positions</h3>
+          <button onclick="openJobModal()" class="btn-green">+ Add Position</button>
+        </div>
+        <div id="jobs-admin-list"></div>
+      </div>
+
+      <!-- TAB: SERVICES -->
+      <div id="tab-services" class="admin-body" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Services</h3>
+          <button onclick="openServiceModal()" class="btn-green">+ Add Service</button>
+        </div>
+        <div id="services-admin-list"></div>
+      </div>
+
+      <!-- TAB: PROJECTS -->
+      <div id="tab-projects" class="admin-body" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Projects</h3>
+          <button onclick="openProjectModal()" class="btn-green">+ Add Project</button>
+        </div>
+        <!-- Ongoing -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; ONGOING</span>
+          <span style="font-size:13px;color:#6b7280;">Projects currently under execution</span>
+        </div>
+        <div id="projects-admin-ongoing"></div>
+        <!-- Completed -->
+        <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px;">
+          <span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; COMPLETED</span>
+          <span style="font-size:13px;color:#6b7280;">Past completed projects</span>
+        </div>
+        <div id="projects-admin-completed"></div>
+      </div>
+
+      <!-- TAB: SETTINGS -->
+      <div id="tab-settings" class="admin-body" style="display:none;">
+        <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:20px;">&#9881;&#65039; Settings</h3>
+
+        <!-- Cloudinary -->
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:20px;margin-bottom:20px;">
+          <h4 style="color:#0369a1;font-size:15px;font-weight:700;margin-bottom:10px;">&#128759; Cloudinary Photo Upload</h4>
+          <p style="color:#0c4a6e;font-size:13px;line-height:1.7;margin-bottom:14px;">Enter your Cloudinary Cloud Name below. Photos uploaded for Key Persons will be stored on Cloudinary and visible on <strong>all devices everywhere</strong>.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:400px;">
+            <label style="font-size:13px;font-weight:600;color:#374151;">Cloudinary Cloud Name</label>
+            <div style="display:flex;gap:10px;">
+              <input id="settings-cloudname" type="text" class="fi" placeholder="e.g. mycompanyxyz">
+              <button onclick="saveCloudNameFromSettings()" class="btn-orange" style="padding:9px 18px;white-space:nowrap;">&#128190; Save</button>
+            </div>
+            <div id="settings-cloudname-status" style="display:none;font-size:12px;color:#16a34a;margin-top:2px;">&#10003; Cloud Name saved!</div>
+            <p style="font-size:12px;color:#0c4a6e;margin-top:4px;">Find this in your Cloudinary dashboard. Also make sure your upload preset <strong>ml_default</strong> is set to <strong>Unsigned</strong>.</p>
+          </div>
+        </div>
+
+        <!-- Upload Preset -->
+        <div style="background:#fef9f5;border:1px solid #fed7aa;border-radius:8px;padding:20px;margin-bottom:20px;">
+          <h4 style="color:#92400e;font-size:15px;font-weight:700;margin-bottom:10px;">&#128229; Upload Preset Name</h4>
+          <p style="color:#78350f;font-size:13px;line-height:1.7;margin-bottom:12px;">If you created a custom unsigned preset (e.g. <code style="background:#fee2c8;padding:2px 5px;border-radius:3px;">atmagaurav_infra</code>), enter it below. Default is <code style="background:#fee2c8;padding:2px 5px;border-radius:3px;">ml_default</code>.</p>
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:400px;">
+            <label style="font-size:13px;font-weight:600;color:#374151;">Upload Preset</label>
+            <div style="display:flex;gap:10px;">
+              <input id="settings-preset" type="text" class="fi" placeholder="ml_default">
+              <button onclick="savePresetFromSettings()" class="btn-orange" style="padding:9px 18px;white-space:nowrap;">&#128190; Save</button>
+            </div>
+            <div id="settings-preset-status" style="display:none;font-size:12px;color:#16a34a;margin-top:2px;">&#10003; Preset saved!</div>
+          </div>
+        </div>
+
+        <!-- Admin password info -->
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:18px;">
+          <h4 style="color:#374151;font-size:15px;font-weight:700;margin-bottom:8px;">&#128274; Admin Credentials</h4>
+          <p style="color:#6b7280;font-size:13px;line-height:1.7;">Username: <strong>admin</strong> &nbsp;|&nbsp; Password: <strong>admin123</strong><br>To change, edit the <code style="background:#e5e7eb;padding:2px 5px;border-radius:3px;">ADMIN_PASS</code> constant in the HTML file.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PERSON MODAL ===== -->
+<div id="person-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="person-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Key Person</h3>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Full Name *</label><input id="pm-name" type="text" class="fi" placeholder="e.g. Kshitij Borkar"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Designation *</label><input id="pm-role" type="text" class="fi" placeholder="e.g. Director"></div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Photo <span style="color:#9ca3af;font-weight:400;">(uploads to Cloudinary &#8212; visible on all devices)</span></label>
+        <div id="cloudinary-warn" style="display:none;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:8px;">
+          &#9888;&#65039; Set your Cloudinary Cloud Name in <strong>Admin &#8594; Settings</strong> tab first.
+        </div>
+        <label for="pm-photo-file" id="pm-photo-label" style="display:flex;align-items:center;gap:10px;background:#f9fafb;border:2px dashed #d1d5db;border-radius:8px;padding:13px 16px;cursor:pointer;font-size:13px;color:#374151;transition:border-color .2s;">
+          <span style="font-size:22px;">&#128247;</span>
+          <span id="pm-photo-filename">Click to upload a photo&hellip;</span>
+        </label>
+        <input type="file" id="pm-photo-file" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
+        <div id="pm-upload-progress" style="display:none;margin-top:8px;">
+          <div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div id="pm-progress-bar" style="height:100%;background:#e8730a;width:0%;transition:width .3s;border-radius:4px;"></div></div>
+          <div id="pm-upload-status" style="font-size:12px;color:#6b7280;margin-top:5px;">Uploading&hellip;</div>
+        </div>
+        <div id="pm-photo-preview" style="display:none;text-align:center;margin-top:10px;">
+          <img id="pm-photo-preview-img" src="" alt="Preview" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid #e8730a;display:inline-block;">
+          <br><button type="button" onclick="clearPhoto()" style="margin-top:6px;font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:'Open Sans',sans-serif;">&#10005; Remove</button>
+        </div>
+        <input type="hidden" id="pm-photo">
+      </div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Short Bio <span style="color:#9ca3af;font-weight:400;">(optional)</span></label><textarea id="pm-bio" rows="3" class="fi" style="resize:vertical;" placeholder="Brief description&hellip;"></textarea></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closePersonModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
+      <button onclick="savePerson()" class="btn-orange" style="padding:9px 18px;" id="pm-save-btn">Save Person</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== JOB MODAL ===== -->
+<div id="job-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="job-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Open Position</h3>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Job Title *</label><input id="jm-title" type="text" class="fi" placeholder="e.g. Site Engineer"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Department *</label><input id="jm-dept" type="text" class="fi" placeholder="e.g. Engineering"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Location *</label><input id="jm-loc" type="text" class="fi" placeholder="e.g. Buldhana, MH"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Experience / Qualification</label><input id="jm-exp" type="text" class="fi" placeholder="e.g. B.E. Civil (2&#8211;5 yrs)"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closeJobModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
+      <button onclick="saveJob()" class="btn-orange" style="padding:9px 18px;" id="jm-save-btn">Save Position</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROJECT MODAL ===== -->
+<div id="project-modal" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="project-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Project</h3>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Project Title *</label><input id="prjm-title" type="text" class="fi" placeholder="e.g. NH 161G &#8211; Shegaon to Sangrampur"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Category *</label><input id="prjm-cat" type="text" class="fi" placeholder="e.g. Highway Maintenance &#183; NHAI"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Location *</label><input id="prjm-loc" type="text" class="fi" placeholder="e.g. Buldhana, MH"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Description</label><textarea id="prjm-desc" rows="3" class="fi" style="resize:vertical;" placeholder="Brief project description&#8230;"></textarea></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Status *</label>
+        <select id="prjm-status" class="fi" style="appearance:auto;cursor:pointer;">
+          <option value="ongoing">&#9679; Ongoing</option>
+          <option value="completed">&#10003; Completed</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Project Photo <span style="color:#9ca3af;font-weight:400;">(optional &#8212; uploads to Cloudinary)</span></label>
+        <div id="prj-cloudinary-warn" style="display:none;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:8px;">
+          &#9888;&#65039; Set your Cloudinary Cloud Name in <strong>Admin &#8594; Settings</strong> tab first.
+        </div>
+        <label for="prjm-img-file" id="prjm-img-label" style="display:flex;align-items:center;gap:10px;background:#f9fafb;border:2px dashed #d1d5db;border-radius:8px;padding:13px 16px;cursor:pointer;font-size:13px;color:#374151;transition:border-color .2s;">
+          <span style="font-size:22px;">&#128247;</span>
+          <span id="prjm-img-filename">Click to upload a photo&hellip;</span>
+        </label>
+        <input type="file" id="prjm-img-file" accept="image/*" style="display:none;" onchange="handleProjectPhotoUpload(this)">
+        <div id="prjm-upload-progress" style="display:none;margin-top:8px;">
+          <div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div id="prjm-progress-bar" style="height:100%;background:#e8730a;width:0%;transition:width .3s;border-radius:4px;"></div></div>
+          <div id="prjm-upload-status" style="font-size:12px;color:#6b7280;margin-top:5px;">Uploading&hellip;</div>
+        </div>
+        <div id="prjm-img-preview" style="display:none;margin-top:10px;border-radius:8px;overflow:hidden;height:140px;">
+          <img id="prjm-img-preview-img" src="" alt="Preview" style="width:100%;height:140px;object-fit:cover;display:block;">
+          <div style="text-align:right;margin-top:6px;"><button type="button" onclick="clearProjectPhoto()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:'Open Sans',sans-serif;">&#10005; Remove photo</button></div>
+        </div>
+        <input type="hidden" id="prjm-img">
+      </div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Tags <span style="color:#9ca3af;font-weight:400;">(comma separated, e.g. Buldhana MH, Maintenance)</span></label><input id="prjm-tags" type="text" class="fi" placeholder="Buldhana MH, Maintenance"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closeProjectModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
+      <button onclick="saveProject()" class="btn-orange" style="padding:9px 18px;" id="prjm-save-btn">Save Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SERVICE MODAL ===== -->
+<div id="service-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:520px;">
+    <h3 id="service-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Service</h3>
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Service Number / Label *</label><input id="svm-label" type="text" class="fi" placeholder="e.g. 01 &#8212; Highway Construction"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Title *</label><input id="svm-title" type="text" class="fi" placeholder="e.g. End-to-End Highway Construction"></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Description *</label><textarea id="svm-desc" rows="3" class="fi" style="resize:vertical;" placeholder="Brief service description..."></textarea></div>
+      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Key Points <span style="color:#9ca3af;font-weight:400;">(one per line)</span></label><textarea id="svm-points" rows="4" class="fi" style="resize:vertical;" placeholder="Greenfield highway development&#10;Four-laning of national highways&#10;Flexible pavement construction"></textarea></div>
+      <div>
+        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Service Photo <span style="color:#9ca3af;font-weight:400;">(uploads to Cloudinary)</span></label>
+        <div id="svc-cloudinary-warn" style="display:none;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:8px;">
+          &#9888;&#65039; Set your Cloudinary Cloud Name in <strong>Admin &#8594; Settings</strong> tab first.
+        </div>
+        <label for="svm-img-file" id="svm-img-label" style="display:flex;align-items:center;gap:10px;background:#f9fafb;border:2px dashed #d1d5db;border-radius:8px;padding:13px 16px;cursor:pointer;font-size:13px;color:#374151;transition:border-color .2s;">
+          <span style="font-size:22px;">&#128247;</span>
+          <span id="svm-img-filename">Click to upload a photo&hellip;</span>
+        </label>
+        <input type="file" id="svm-img-file" accept="image/*" style="display:none;" onchange="handleServicePhotoUpload(this)">
+        <div id="svm-upload-progress" style="display:none;margin-top:8px;">
+          <div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div id="svm-progress-bar" style="height:100%;background:#e8730a;width:0%;transition:width .3s;border-radius:4px;"></div></div>
+          <div id="svm-upload-status" style="font-size:12px;color:#6b7280;margin-top:5px;">Uploading&hellip;</div>
+        </div>
+        <div id="svm-img-preview" style="display:none;margin-top:10px;border-radius:8px;overflow:hidden;height:130px;">
+          <img id="svm-img-preview-img" src="" alt="Preview" style="width:100%;height:130px;object-fit:cover;display:block;">
+          <div style="text-align:right;margin-top:4px;"><button type="button" onclick="clearServicePhoto()" style="font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:'Open Sans',sans-serif;">&#10005; Remove</button></div>
+        </div>
+        <input type="hidden" id="svm-img">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button onclick="closeServiceModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
+      <button onclick="saveService()" class="btn-orange" style="padding:9px 18px;" id="svm-save-btn">Save Service</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NAVBAR ===== -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <button onclick="go('home')" style="display:flex;align-items:center;gap:11px;background:none;border:none;cursor:pointer;padding:0;">
+      <div style="width:40px;height:40px;background:#e8730a;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
+      </div>
+      <div style="text-align:left;">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;font-size:20px;line-height:1.2;">ATMAGAURAV INFRA</div>
+        <div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div>
+      </div>
+    </button>
+    <div id="desk-nav" style="display:flex;align-items:center;gap:2px;">
+      <button class="nav-btn active" id="nb-home"     onclick="go('home')">Home</button>
+      <button class="nav-btn"        id="nb-about"    onclick="go('about')">About Us</button>
+      <button class="nav-btn"        id="nb-services" onclick="go('services')">Services</button>
+      <button class="nav-btn"        id="nb-projects" onclick="go('projects')">Projects</button>
+      <button class="nav-btn"        id="nb-careers"  onclick="go('careers')">Careers</button>
+      <button class="nav-btn"        id="nb-contact"  onclick="go('contact')">Contact</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="openAdmin()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:600;padding:6px 12px;border-radius:4px;cursor:pointer;font-family:'Open Sans',sans-serif;" title="Admin Login">&#9881;&#65039; Admin</button>
+      <a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" class="btn-orange" style="padding:7px 15px;font-size:12px;border-radius:4px;">Employee Login</a>
+      <button id="hamburger" onclick="toggleMob()" style="display:none;background:none;border:none;cursor:pointer;padding:4px;" aria-label="Menu">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="mob-menu">
+    <button class="mob-link" onclick="go('home')">Home</button>
+    <button class="mob-link" onclick="go('about')">About Us</button>
+    <button class="mob-link" onclick="go('services')">Services</button>
+    <button class="mob-link" onclick="go('projects')">Projects</button>
+    <button class="mob-link" onclick="go('careers')">Careers</button>
+    <button class="mob-link" onclick="go('contact')">Contact</button>
+    <a href="https://app.atmagauravinfra.com/" target="_blank" class="btn-orange" style="margin-top:12px;width:100%;justify-content:center;text-decoration:none;">Employee Login</a>
+  </div>
+</nav>
+
+<!-- ==================== HOME ==================== -->
+<div id="pg-home" class="page active">
+  <div id="hero-wrap">
+    <div id="hero-bg"></div>
+    <div id="hero-overlay"></div>
+    <div id="hero-content">
+      <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
+        <div style="max-width:620px;">
+          <div class="badge au d1"><span class="adot"></span><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Government Infrastructure Contractor</span></div>
+          <h1 class="hero-h1 au d2" style="font-family:'Playfair Display',serif;font-size:clamp(38px,5.5vw,66px);font-weight:800;color:#fff;line-height:1.12;margin-bottom:18px;">Building India's<br><span style="color:#e8730a;">Infrastructure</span><br>of Tomorrow</h1>
+          <p class="au d3" style="color:rgba(255,255,255,.75);font-size:17px;line-height:1.75;margin-bottom:30px;max-width:500px;">Atmagaurav Infra Private Limited delivers world-class highway construction, bridge engineering, and road safety solutions across Maharashtra and beyond.</p>
+          <div class="au d4" style="display:flex;flex-wrap:wrap;gap:14px;">
+            <button onclick="go('services')" class="btn-orange" style="font-size:15px;padding:12px 26px;">Our Services <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            <button onclick="go('projects')" class="btn-ghost" style="font-size:15px;padding:12px 26px;">View Projects</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(13,27,62,.9);backdrop-filter:blur(4px);border-top:1px solid rgba(255,255,255,.1);padding:13px 24px;">
+      <div style="max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:12px 36px;">
+        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>NHAI Empanelled Contractor</span>
+        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>MSRDC Registered</span>
+        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>State PWD Approved</span>
+        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>MORTH Standards Compliant</span>
+        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>IRC Code Adherence</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec" style="background:#fff;">
+    <div class="inner">
+      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What We Do</span><h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#0d1b3e;margin-top:8px;">Core Services</h2><div class="ab c"></div></div>
+      <div class="g4" style="margin-top:8px;">
+        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Highway" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Highway Construction</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">End-to-end highway construction from greenfield to upgradation projects.</p></div></div>
+        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Bridge" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Bridge Construction</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Design and build of major bridges, flyovers, and viaducts.</p></div></div>
+        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Maintenance" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Highway Maintenance</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Periodic and routine maintenance of national and state highway corridors.</p></div></div>
+        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Safety" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Road Safety Works</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Crash barriers, signage, road marking, and traffic management systems.</p></div></div>
+      </div>
+      <div style="text-align:center;margin-top:40px;"><button onclick="go('services')" class="btn-navy">View All Services <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
+    </div>
+  </div>
+
+  <div class="sec" style="background:#f9fafb;">
+    <div class="inner">
+      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Currently Under Execution</span><h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#0d1b3e;margin-top:8px;">Ongoing Projects</h2><div class="ab c"></div></div>
+      <div class="g3" style="margin-top:8px;">
+        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="FOB" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Bridge Construction</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">Foot Over Bridge at Hiwra Ashram, Buldhana</h3><p style="color:#9ca3af;font-size:12px;">&#128205; District Buldhana, Maharashtra</p></div></div>
+        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="NH161G" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">NH 161G &#8211; Shegaon to Sangrampur</h3><p style="color:#9ca3af;font-size:12px;">&#128205; Buldhana District, Maharashtra</p></div></div>
+        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="NH753C" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">NH 753C &#8211; Dusarbid to Pimpri Sarad</h3><p style="color:#9ca3af;font-size:12px;">&#128205; Jalna&#8211;Pulgaon Section, Maharashtra</p></div></div>
+      </div>
+      <div style="text-align:center;margin-top:40px;"><button onclick="go('projects')" class="btn-navy">View All Projects <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
+    </div>
+  </div>
+
+  <div class="sec" style="background:#0d1b3e;">
+    <div class="inner">
+      <div class="g2">
+        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Why Choose Us</span><h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#fff;margin:10px 0 18px;line-height:1.2;">Trusted by Government Agencies Across India</h2><p style="color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:26px;">With a proven track record since 2024, Atmagaurav Infra has established itself as a preferred contractor for critical national infrastructure projects.</p><button onclick="go('about')" class="btn-orange">Know More About Us <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Government Empanelled</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Registered with NHAI, MSRDC, and State PWD.</p></div>
+          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Quality Assurance</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Strict adherence to IRC, MORTH, and IS standards.</p></div>
+          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Safety First</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Zero-compromise safety culture with full PPE compliance.</p></div>
+          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Timely Delivery</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Proven track record of on-time project completion.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="position:relative;padding:88px 24px;background:url('https://images.unsplash.com/photo-1585467682547-e0d34502e4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200') center/cover no-repeat;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:rgba(13,27,62,.86);"></div>
+    <div style="position:relative;max-width:700px;margin:0 auto;text-align:center;">
+      <h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:14px;">Ready to Build Something Great?</h2>
+      <p style="color:rgba(255,255,255,.65);font-size:17px;margin-bottom:30px;line-height:1.7;">Partner with us for your next highway, bridge, or infrastructure project.</p>
+      <button onclick="go('contact')" class="btn-orange" style="font-size:15px;padding:12px 28px;">Get In Touch <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
+  </div>
+  <div data-footer></div>
+</div>
+
+<!-- ==================== ABOUT ==================== -->
+<div id="pg-about" class="page">
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Story</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">About Us</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Engineering excellence, integrity, and nation-building since 2024.</p></div></div>
+  <div class="sec" style="background:#fff;">
+    <div class="inner">
+      <div class="g2">
+        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Who We Are</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Atmagaurav Infra Private Limited</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">Atmagaurav Infra Private Limited is a government infrastructure contractor headquartered in Bhayander East, Thane, Maharashtra. Since our inception in 2024, we have been delivering critical infrastructure projects that connect communities and drive economic growth across India.</p><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">We specialize in highway construction, bridge engineering, road maintenance, and road safety systems &#8212; all executed to the highest standards set by NHAI, MORTH, IRC, and State PWD.</p><p style="color:#4b5563;line-height:1.8;">Our team of experienced engineers, project managers, and skilled professionals brings deep domain expertise and a passion for excellence to every project we undertake.</p></div>
+        <div><img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Team" style="width:100%;height:420px;object-fit:cover;border-radius:8px;display:block;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec" style="background:#0d1b3e;padding-top:60px;padding-bottom:60px;">
+    <div class="inner">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;">
+        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">5+</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Ongoing Projects</div></div>
+        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">NHAI</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Empanelled Contractor</div></div>
+        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">MH</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Maharashtra Focus</div></div>
+        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">IRC</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Code Compliant</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY PERSONS -->
+  <div class="sec" style="background:#f9fafb;">
+    <div class="inner">
+      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Leadership</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Key Persons</h2><div class="ab c"></div></div>
+      <div id="persons-public-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="sec" style="background:#fff;">
+    <div class="inner">
+      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What Drives Us</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Our Core Values</h2><div class="ab c"></div></div>
+      <div class="g4" style="margin-top:8px;">
+        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#127919;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Excellence</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Highest standards in engineering, materials, and execution every project.</p></div>
+        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#128737;&#65039;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Integrity</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Complete transparency and ethical conduct in all our dealings.</p></div>
+        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#9888;&#65039;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Safety</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Zero-accident culture with rigorous PPE compliance and safety audits.</p></div>
+        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#129309;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Partnership</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Long-term relationships with government agencies and communities.</p></div>
+      </div>
+    </div>
+  </div>
+  <div data-footer></div>
+</div>
+
+<!-- ==================== SERVICES ==================== -->
+<div id="pg-services" class="page">
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What We Offer</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Our Services</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Comprehensive infrastructure solutions delivered with precision, quality, and safety.</p></div></div>
+  <div class="sec" style="background:#fff;">
+    <div class="inner" id="services-public-list"></div>
+  </div>
+  <div style="padding:56px 24px;background:#f9fafb;text-align:center;"><h3 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;margin-bottom:12px;">Have a Project in Mind?</h3><p style="color:#6b7280;margin-bottom:26px;font-size:15px;">Let's discuss your requirements and build something that lasts.</p><button onclick="go('contact')" class="btn-orange" style="font-size:15px;padding:12px 28px;">Contact Us Today</button></div>
+  <div data-footer></div>
+</div>
+
+<!-- ==================== PROJECTS ==================== -->
+<div id="pg-projects" class="page">
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Work</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Projects</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Infrastructure projects shaping Maharashtra's future.</p></div></div>
+  <div class="sec" style="background:#fff;">
+    <div class="inner">
+      <!-- Ongoing -->
+      <div id="public-ongoing-header" style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#9679; ONGOING</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Currently Under Execution</h2></div>
+      <div id="projects-public-ongoing" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:52px;"></div>
+      <!-- Completed -->
+      <div id="public-completed-section" style="display:none;">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#10003; COMPLETED</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Past Projects</h2></div>
+        <div id="projects-public-completed" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;"></div>
+      </div>
+    </div>
+  </div>
+  <div data-footer></div>
+</div>
+
+<!-- ==================== CAREERS ==================== -->
+<div id="pg-careers" class="page">
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Join Our Team</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Careers</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Build your career while building India's future infrastructure.</p></div></div>
+  <div class="sec" style="background:#fff;">
+    <div class="inner">
+      <div class="g2">
+        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Why Join Us</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin:10px 0 0;">Grow With a Nation-Builder</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:22px;">At Atmagaurav Infra, we believe our people are our greatest asset. We offer a challenging, rewarding, and safe environment where talented professionals grow alongside one of Maharashtra's most respected infrastructure companies.</p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128200;</span><div><strong style="color:#0d1b3e;font-size:14px;">Career Growth</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Clear growth paths from junior engineer to project manager and beyond.</p></div></div>
+            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128737;&#65039;</span><div><strong style="color:#0d1b3e;font-size:14px;">Safety Culture</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Your safety is our top priority &#8212; PPE, regular training, zero-accident mindset.</p></div></div>
+            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128176;</span><div><strong style="color:#0d1b3e;font-size:14px;">Competitive Pay</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Market-competitive salaries, timely payments, and performance bonuses.</p></div></div>
+          </div>
+        </div>
+        <div><img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Team" style="width:100%;height:440px;object-fit:cover;border-radius:8px;display:block;"></div>
+      </div>
+    </div>
+  </div>
+  <div class="sec" style="background:#f9fafb;padding-top:20px;">
+    <div class="inner-md">
+      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Current Openings</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin:10px 0;">Open Positions</h2><div class="ab c"></div></div>
+      <div id="jobs-public-list" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;"></div>
+      <div style="text-align:center;margin-top:32px;padding:26px;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
+        <p style="color:#6b7280;margin-bottom:14px;font-size:14px;">Don't see a relevant role? We're always looking for talented professionals.</p>
+        <a href="mailto:admin@atmagauravinfra.com?subject=General Application &#8211; Resume Submission" class="btn-navy" style="text-decoration:none;">&#128231; Send Your Resume</a>
+      </div>
+    </div>
+  </div>
+  <div data-footer></div>
+</div>
+
+<!-- ==================== CONTACT ==================== -->
+<div id="pg-contact" class="page">
+  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Reach Out</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Contact Us</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">We'd love to hear about your project &#8212; whether it's a new tender, partnership, or enquiry.</p></div></div>
+  <div class="sec" style="background:#fff;">
+    <div style="max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1.2fr;gap:60px;" id="contact-grid">
+      <div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;">Get In Touch</h2><div class="ab"></div>
+        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#128205;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Registered Office</div><div style="color:#6b7280;font-size:13px;line-height:1.75;">SH9, Govindrao Apt Buld G Ltd,<br>Vimal Dairy Road, Goddev Village,<br>Bhayander East, Dist Thane &#8211; 401105,<br>Maharashtra, India</div></div></div>
+        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#9993;&#65039;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Email</div><a href="mailto:admin@atmagauravinfra.com" style="color:#e8730a;font-size:14px;text-decoration:none;display:block;">admin@atmagauravinfra.com</a></div></div>
+        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#127760;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Employee Portal</div><a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" style="color:#e8730a;font-size:14px;text-decoration:none;">app.atmagauravinfra.com &#8594;</a></div></div>
+        <div style="display:flex;gap:14px;margin-bottom:28px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#128336;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Office Hours</div><div style="color:#6b7280;font-size:13px;line-height:1.75;">Monday &#8211; Saturday: 9:00 AM &#8211; 6:00 PM<br>Sunday: Closed</div></div></div>
+        <a href="https://maps.google.com/?q=Bhayander+East+Thane+Maharashtra" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;height:160px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;color:#e8730a;font-size:14px;font-weight:600;text-decoration:none;">&#128205; View on Google Maps &#8594;</a>
+      </div>
+      <div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;">Send a Message</h2><div class="ab"></div>
+        <form onsubmit="submitContact(event)" style="display:flex;flex-direction:column;gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="g-half">
+            <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Full Name *</label><input type="text" required placeholder="Your full name" class="fi" id="cf-name"></div>
+            <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Company</label><input type="text" placeholder="Company (optional)" class="fi" id="cf-company"></div>
+          </div>
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Email Address *</label><input type="email" required placeholder="you@example.com" class="fi" id="cf-email"></div>
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Phone Number</label><input type="tel" placeholder="+91 XXXXX XXXXX" class="fi" id="cf-phone"></div>
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Subject *</label>
+            <select required class="fi" id="cf-subject" style="appearance:auto;cursor:pointer;">
+              <option value="">Select a subject&hellip;</option>
+              <option>New Project Enquiry</option><option>Tender / Bid Information</option><option>Partnership Opportunity</option><option>Career Query</option><option>General Enquiry</option>
+            </select>
+          </div>
+          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Message *</label><textarea required placeholder="Tell us about your project or query&hellip;" rows="5" class="fi" id="cf-msg" style="resize:vertical;"></textarea></div>
+          <button type="submit" class="btn-orange" style="justify-content:center;font-size:15px;padding:12px;">Send Message &#9993;&#65039;</button>
+          <div id="c-ok" style="display:none;text-align:center;color:#16a34a;font-size:14px;font-weight:600;padding:12px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;">&#10003; Thank you! We'll get back to you within 1&#8211;2 business days.</div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div data-footer></div>
+</div>
+
+<!-- ===== FOOTER TEMPLATE ===== -->
+<template id="ftpl">
+  <footer style="background:#0a1628;color:#fff;">
+    <div style="max-width:1280px;margin:0 auto;padding:56px 24px 36px;">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:36px;margin-bottom:44px;" class="footer-grid">
+        <div>
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
+            <div style="width:38px;height:38px;background:#e8730a;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg></div>
+            <div><div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:#fff;line-height:1.2;">ATMAGAURAV INFRA</div><div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div></div>
+          </div>
+          <p style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.8;max-width:260px;">Building the infrastructure of tomorrow &#8212; highways, bridges, and roads that connect communities across India.</p>
+        </div>
+        <div>
+          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Quick Links</h4>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <button class="fl-btn" onclick="go('home')"><span style="color:#e8730a;">&#8250;</span> Home</button>
+            <button class="fl-btn" onclick="go('about')"><span style="color:#e8730a;">&#8250;</span> About Us</button>
+            <button class="fl-btn" onclick="go('services')"><span style="color:#e8730a;">&#8250;</span> Services</button>
+            <button class="fl-btn" onclick="go('projects')"><span style="color:#e8730a;">&#8250;</span> Projects</button>
+            <button class="fl-btn" onclick="go('careers')"><span style="color:#e8730a;">&#8250;</span> Careers</button>
+            <button class="fl-btn" onclick="go('contact')"><span style="color:#e8730a;">&#8250;</span> Contact</button>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Services</h4>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Highway Construction</span>
+            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Bridge Construction</span>
+            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Highway Maintenance</span>
+            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Bridge Maintenance</span>
+            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Road Safety Works</span>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Contact Info</h4>
+          <div style="display:flex;gap:10px;margin-bottom:14px;"><span style="font-size:15px;flex-shrink:0;margin-top:2px;">&#128205;</span><span style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.7;">SH9, Govindrao Apt Buld G Ltd, Vimal Dairy Road, Goddev Village, Bhayander East, Thane 401105, MH</span></div>
+          <div style="display:flex;gap:10px;"><span style="font-size:15px;flex-shrink:0;">&#9993;&#65039;</span><a href="mailto:admin@atmagauravinfra.com" style="color:rgba(255,255,255,.55);font-size:13px;text-decoration:none;">admin@atmagauravinfra.com</a></div>
+        </div>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.1);"><div style="max-width:1280px;margin:0 auto;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;"><p style="color:rgba(255,255,255,.35);font-size:13px;">&#169; 2026 Atmagaurav Infra Private Limited. All rights reserved.</p><a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" style="color:#e8730a;font-size:13px;font-weight:600;text-decoration:none;">Employee Portal &#8594;</a></div></div>
+  </footer>
+</template>
+
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'admin123';
 
@@ -337,7 +919,7 @@ function doLogin() {
   if (u === ADMIN_USER && p === ADMIN_PASS) {
     document.getElementById('admin-login-screen').style.display  = 'none';
     document.getElementById('admin-dashboard').style.display     = 'flex';
-    renderAdminPersons(); renderAdminJobs(); renderAdminProjects();
+    renderAdminPersons(); renderAdminJobs(); renderAdminServices(); renderAdminProjects();
     // Pre-fill settings
     const cn = getCloudName();
     if (cn) document.getElementById('settings-cloudname').value = cn;
@@ -361,9 +943,10 @@ function doLogout() {
 function switchTab(tabId, btn) {
   document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  ['tab-persons','tab-jobs','tab-projects','tab-settings'].forEach(id => {
+  ['tab-persons','tab-jobs','tab-services','tab-projects','tab-settings'].forEach(id => {
     document.getElementById(id).style.display = (id === tabId) ? 'block' : 'none';
   });
+  if (tabId === 'tab-services') { renderAdminServices(); }
   if (tabId === 'tab-projects') { renderAdminProjects(); }
   if (tabId === 'tab-settings') {
     const cn = getCloudName();
@@ -374,13 +957,14 @@ function switchTab(tabId, btn) {
 }
 
 // Close on backdrop click
-['admin-panel','person-modal','job-modal','project-modal'].forEach(id => {
+['admin-panel','person-modal','job-modal','project-modal','service-modal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) {
       if (id === 'admin-panel') closeAdmin();
       else if (id === 'person-modal') closePersonModal();
       else if (id === 'job-modal') closeJobModal();
-      else closeProjectModal();
+      else if (id === 'project-modal') closeProjectModal();
+      else closeServiceModal();
     }
   });
 });
@@ -416,6 +1000,7 @@ function go(name) {
   if (name === 'about')   renderPublicPersons();
   if (name === 'careers') renderPublicJobs();
   if (name === 'projects') renderPublicProjects();
+  if (name === 'services') renderPublicServices();
 }
 
 // ---- CONTACT FORM ----
@@ -450,6 +1035,230 @@ window.addEventListener('resize', fixFooterGrid);
 fixContactGrid(); fixFooterGrid();
 
 
+// ---- PROJECT PHOTO UPLOAD ----
+async function handleProjectPhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Photo must be under 5 MB.'); input.value = ''; return; }
+  const cloudName = getCloudName();
+  if (!cloudName) {
+    alert('Please set your Cloudinary Cloud Name in Admin \u2192 Settings tab first.');
+    input.value = '';
+    document.getElementById('prj-cloudinary-warn').style.display = 'block';
+    return;
+  }
+  const prog = document.getElementById('prjm-upload-progress');
+  const bar  = document.getElementById('prjm-progress-bar');
+  const stat = document.getElementById('prjm-upload-status');
+  prog.style.display = 'block';
+  bar.style.width = '20%';
+  stat.textContent = 'Uploading to cloud\u2026';
+  stat.style.color = '#6b7280';
+  document.getElementById('prjm-img-filename').textContent = file.name;
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', getPresetName());
+    fd.append('folder', 'atmagaurav_infra/projects');
+    bar.style.width = '55%';
+    const res = await fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', { method: 'POST', body: fd });
+    bar.style.width = '90%';
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Upload failed'); }
+    const data = await res.json();
+    bar.style.width = '100%';
+    stat.textContent = '\u2705 Uploaded successfully!';
+    stat.style.color = '#16a34a';
+    document.getElementById('prjm-img').value = data.secure_url;
+    document.getElementById('prjm-img-preview-img').src = data.secure_url;
+    document.getElementById('prjm-img-preview').style.display = 'block';
+    document.getElementById('prjm-img-label').style.borderColor = '#e8730a';
+    setTimeout(() => { prog.style.display = 'none'; bar.style.width = '0%'; }, 2500);
+  } catch (err) {
+    bar.style.width = '0%';
+    stat.textContent = '\u274C Upload failed: ' + err.message;
+    stat.style.color = '#dc2626';
+  }
+}
+function clearProjectPhoto() {
+  document.getElementById('prjm-img').value = '';
+  document.getElementById('prjm-img-file').value = '';
+  document.getElementById('prjm-img-preview').style.display = 'none';
+  document.getElementById('prjm-upload-progress').style.display = 'none';
+  document.getElementById('prjm-img-filename').textContent = 'Click to upload a photo\u2026';
+  document.getElementById('prjm-img-label').style.borderColor = '#d1d5db';
+}
+function setProjectPhotoPreview(url) {
+  if (url) {
+    document.getElementById('prjm-img').value = url;
+    document.getElementById('prjm-img-preview-img').src = url;
+    document.getElementById('prjm-img-preview').style.display = 'block';
+    document.getElementById('prjm-img-filename').textContent = 'Current photo';
+    document.getElementById('prjm-img-label').style.borderColor = '#e8730a';
+  } else {
+    clearProjectPhoto();
+  }
+}
+
+
+// ---- SERVICES DATA ----
+function loadServices() {
+  try { return JSON.parse(localStorage.getItem('ai_services')) || defaultServices(); } catch(e) { return defaultServices(); }
+}
+function saveServices(d) { localStorage.setItem('ai_services', JSON.stringify(d)); }
+
+function defaultServices() {
+  return [
+    { id:1, label:'01 — Highway Construction', title:'End-to-End Highway Construction', desc:'We deliver complete highway construction from land acquisition support to final commissioning — greenfield expressways, upgradation, four-laning, six-laning, and related civil works.', points:['Greenfield & brownfield highway development','Four-laning & six-laning of national highways','Flexible & rigid pavement construction','MORTH & IRC code compliant execution'], img:'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800' },
+    { id:2, label:'02 — Bridge Construction', title:'Bridge & Flyover Engineering', desc:'Our bridge engineering team handles construction and commissioning of major bridges, river crossings, viaducts, foot over bridges, and flyovers.', points:['RCC & PSC bridge construction','Foot over bridges (FOB) & pedestrian underpasses','Flyovers, ROBs & grade separators','IRC & IS code compliant design'], img:'https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800' },
+    { id:3, label:'03 — Highway Maintenance', title:'Periodic & Routine Maintenance', desc:'We provide comprehensive Annual Maintenance Contracts (AMC) for national and state highways ensuring roads remain safe, pothole-free, and functional.', points:['Annual maintenance contracts (AMC)','Pothole patching & bituminous overlay','Drainage maintenance & clearance','Emergency monsoon repairs'], img:'https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800' },
+    { id:4, label:'04 — Road Safety Works', title:'Safety Systems & Signage', desc:'We install and maintain comprehensive road safety systems that reduce accidents and protect lives on national and state highways.', points:['W-beam & thrie-beam crash barriers','Retro-reflective road signage & delineators','Thermoplastic road markings','Safety audits & black-spot treatment'], img:'https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800' },
+  ];
+}
+
+// ---- SERVICE PHOTO UPLOAD ----
+async function handleServicePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Photo must be under 5 MB.'); input.value = ''; return; }
+  const cloudName = getCloudName();
+  if (!cloudName) {
+    alert('Please set your Cloudinary Cloud Name in Admin → Settings tab first.');
+    input.value = '';
+    document.getElementById('svc-cloudinary-warn').style.display = 'block';
+    return;
+  }
+  const prog = document.getElementById('svm-upload-progress');
+  const bar  = document.getElementById('svm-progress-bar');
+  const stat = document.getElementById('svm-upload-status');
+  prog.style.display = 'block';
+  bar.style.width = '20%';
+  stat.textContent = 'Uploading to cloud…';
+  stat.style.color = '#6b7280';
+  document.getElementById('svm-img-filename').textContent = file.name;
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', getPresetName());
+    fd.append('folder', 'atmagaurav_infra/services');
+    bar.style.width = '55%';
+    const res = await fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', { method:'POST', body:fd });
+    bar.style.width = '90%';
+    if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'Upload failed'); }
+    const data = await res.json();
+    bar.style.width = '100%';
+    stat.textContent = '✅ Uploaded!';
+    stat.style.color = '#16a34a';
+    document.getElementById('svm-img').value = data.secure_url;
+    document.getElementById('svm-img-preview-img').src = data.secure_url;
+    document.getElementById('svm-img-preview').style.display = 'block';
+    document.getElementById('svm-img-label').style.borderColor = '#e8730a';
+    setTimeout(() => { prog.style.display = 'none'; bar.style.width = '0%'; }, 2500);
+  } catch(err) {
+    bar.style.width = '0%';
+    stat.textContent = '❌ Upload failed: ' + err.message;
+    stat.style.color = '#dc2626';
+  }
+}
+function clearServicePhoto() {
+  document.getElementById('svm-img').value = '';
+  document.getElementById('svm-img-file').value = '';
+  document.getElementById('svm-img-preview').style.display = 'none';
+  document.getElementById('svm-upload-progress').style.display = 'none';
+  document.getElementById('svm-img-filename').textContent = 'Click to upload a photo…';
+  document.getElementById('svm-img-label').style.borderColor = '#d1d5db';
+}
+function setServicePhotoPreview(url) {
+  if (url) {
+    document.getElementById('svm-img').value = url;
+    document.getElementById('svm-img-preview-img').src = url;
+    document.getElementById('svm-img-preview').style.display = 'block';
+    document.getElementById('svm-img-filename').textContent = 'Current photo';
+    document.getElementById('svm-img-label').style.borderColor = '#e8730a';
+  } else { clearServicePhoto(); }
+}
+
+// ---- RENDER PUBLIC SERVICES ----
+function renderPublicServices() {
+  const el = document.getElementById('services-public-list');
+  if (!el) return;
+  const list = loadServices();
+  if (!list.length) { el.innerHTML = '<p style="color:#9ca3af;padding:40px;text-align:center;">No services added yet.</p>'; return; }
+  el.innerHTML = list.map(function(s, i) {
+    const imgSrc = s.img || 'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800';
+    const isEven = i % 2 === 0;
+    const imgDiv = `<div${isEven ? '' : ' class="order-r"'}><img src="${imgSrc}" alt="${s.title}" style="width:100%;height:340px;object-fit:cover;border-radius:8px;display:block;"></div>`;
+    const points = (s.points || []).map(function(p) {
+      return '<li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>' + p + '</li>';
+    }).join('');
+    const lastLi = points ? points.replace(/<li style="([^"]*?)border-bottom[^"]*?"/, '<li style="$1"') : '';
+    const textDiv = `<div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">${s.label||''}</span><h2 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0d1b3e;margin-top:10px;">${s.title}</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">${s.desc||''}</p><ul style="list-style:none;padding:0;">${points}</ul></div>`;
+    const mb = i < list.length - 1 ? 'margin-bottom:64px;' : '';
+    return '<div class="g2" style="' + mb + '">' + (isEven ? imgDiv + textDiv : textDiv + imgDiv) + '</div>';
+  }).join('');
+}
+
+// ---- RENDER ADMIN SERVICES ----
+function renderAdminServices() {
+  const el = document.getElementById('services-admin-list');
+  if (!el) return;
+  const list = loadServices();
+  if (!list.length) { el.innerHTML = '<p style="color:#9ca3af;padding:20px;text-align:center;">No services. Click + Add Service.</p>'; return; }
+  el.innerHTML = list.map(function(s) {
+    const imgSrc = s.img || 'https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=100';
+    return `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="${imgSrc}" alt="${s.title}" style="width:60px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.title}</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">${s.label||''}</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editService(${s.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteService(${s.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>`;
+  }).join('');
+}
+
+// ---- SERVICE CRUD ----
+var editingServiceId = null;
+function openServiceModal(id) {
+  editingServiceId = id || null;
+  var services = loadServices();
+  if (id) {
+    var s = services.find(function(x) { return x.id === id; });
+    document.getElementById('service-modal-title').textContent = 'Edit Service';
+    document.getElementById('svm-label').value  = s.label || '';
+    document.getElementById('svm-title').value  = s.title || '';
+    document.getElementById('svm-desc').value   = s.desc  || '';
+    document.getElementById('svm-points').value = (s.points||[]).join('\n');
+    document.getElementById('svm-save-btn').textContent = 'Update Service';
+    setServicePhotoPreview(s.img || '');
+  } else {
+    document.getElementById('service-modal-title').textContent = 'Add Service';
+    ['svm-label','svm-title','svm-desc','svm-points'].forEach(function(i) { document.getElementById(i).value = ''; });
+    document.getElementById('svm-save-btn').textContent = 'Save Service';
+    clearServicePhoto();
+  }
+  document.getElementById('svc-cloudinary-warn').style.display = getCloudName() ? 'none' : 'block';
+  document.getElementById('service-modal').classList.add('open');
+}
+function closeServiceModal() { document.getElementById('service-modal').classList.remove('open'); }
+function saveService() {
+  var label  = document.getElementById('svm-label').value.trim();
+  var title  = document.getElementById('svm-title').value.trim();
+  var desc   = document.getElementById('svm-desc').value.trim();
+  var points = document.getElementById('svm-points').value.split('\n').map(function(p){return p.trim();}).filter(Boolean);
+  var img    = document.getElementById('svm-img').value.trim();
+  if (!title) { alert('Service title is required.'); return; }
+  var services = loadServices();
+  if (editingServiceId) {
+    var i = services.findIndex(function(x) { return x.id === editingServiceId; });
+    services[i] = Object.assign({}, services[i], { label, title, desc, points, img });
+  } else {
+    services.push({ id: Date.now(), label, title, desc, points, img });
+  }
+  saveServices(services);
+  renderAdminServices();
+  renderPublicServices();
+  closeServiceModal();
+}
+function editService(id)   { openServiceModal(id); }
+function deleteService(id) {
+  if (!confirm('Delete this service?')) return;
+  saveServices(loadServices().filter(function(x) { return x.id !== id; }));
+  renderAdminServices();
+  renderPublicServices();
+}
 // ---- PROJECTS DATA ----
 function loadProjects() {
   try { return JSON.parse(localStorage.getItem('ai_projects')) || defaultProjects(); } catch(e) { return defaultProjects(); }
@@ -474,11 +1283,11 @@ function renderPublicProjects() {
 
   const makeCard = (p) => {
     const badge = p.status === 'ongoing'
-      ? '<span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span>'
-      : '<span style="position:absolute;top:12px;left:12px;background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; Completed</span>';
+      ? `<span style="position:absolute;top:12px;left:12px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; Ongoing</span>`
+      : `<span style="position:absolute;top:12px;left:12px;background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; Completed</span>`;
     const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=700';
-    const tags = (p.tags||[]).map(t=>'<span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">'+t+'</span>').join('');
-    return '<div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="'+imgSrc+'" alt="'+p.title+'" style="height:195px;">'+badge+'</div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">'+(p.cat||'')+'</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">'+p.title+'</h3>'+(p.desc?'<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">'+p.desc+'</p>':'')+'<div style="display:flex;gap:8px;flex-wrap:wrap;">&#128205; '+(p.loc||'')+' '+tags+'</div></div></div>';
+    const tags = (p.tags||[]).map(t=>`<span style="background:#f3f4f6;color:#374151;font-size:11px;padding:4px 10px;border-radius:4px;">${t}</span>`).join('');
+    return `<div class="card"><div class="card-img-wrap" style="height:195px;position:relative;"><img src="${imgSrc}" alt="${p.title}" style="height:195px;">${badge}</div><div style="padding:20px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">${p.cat||''}</span><h3 style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:#0d1b3e;margin:8px 0 10px;line-height:1.4;">${p.title}</h3>${p.desc ? `<p style="color:#6b7280;font-size:13px;line-height:1.6;margin-bottom:12px;">${p.desc}</p>` : ''}<div style="display:flex;gap:8px;flex-wrap:wrap;">&#128205; ${p.loc||''} ${tags}</div></div></div>`;
   };
 
   const oEl = document.getElementById('projects-public-ongoing');
@@ -497,7 +1306,7 @@ function renderAdminProjects() {
 
   const makeAdminCard = (p) => {
     const imgSrc = p.img || 'https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=100';
-    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="'+imgSrc+'" alt="'+p.title+'" style="width:56px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.title+'</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">'+(p.cat||'')+'</div><div style="color:#9ca3af;font-size:11px;margin-top:2px;">&#128205; '+(p.loc||'')+'</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editProject('+p.id+')" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteProject('+p.id+')" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>';
+    return `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;display:flex;gap:14px;align-items:center;margin-bottom:10px;"><img src="${imgSrc}" alt="${p.title}" style="width:56px;height:48px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.display='none'"><div style="flex:1;min-width:0;"><div style="font-weight:700;color:#0d1b3e;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.title}</div><div style="color:#e8730a;font-size:11px;font-weight:600;margin-top:2px;">${p.cat||''}</div><div style="color:#9ca3af;font-size:11px;margin-top:2px;">&#128205; ${p.loc||''}</div></div><div style="display:flex;gap:7px;flex-shrink:0;"><button onclick="editProject(${p.id})" class="btn-navy" style="padding:6px 11px;font-size:12px;">&#9999;&#65039; Edit</button><button onclick="deleteProject(${p.id})" class="btn-red" style="padding:6px 11px;font-size:12px;">&#128465; Del</button></div></div>`;
   };
 
   const oEl = document.getElementById('projects-admin-ongoing');
@@ -519,15 +1328,17 @@ function openProjectModal(id) {
     document.getElementById('prjm-loc').value    = p.loc    || '';
     document.getElementById('prjm-desc').value   = p.desc   || '';
     document.getElementById('prjm-status').value = p.status || 'ongoing';
-    document.getElementById('prjm-img').value    = p.img    || '';
     document.getElementById('prjm-tags').value   = (p.tags||[]).join(', ');
     document.getElementById('prjm-save-btn').textContent = 'Update Project';
+    setProjectPhotoPreview(p.img || '');
   } else {
     document.getElementById('project-modal-title').textContent = 'Add Project';
-    ['prjm-title','prjm-cat','prjm-loc','prjm-desc','prjm-img','prjm-tags'].forEach(function(i){ document.getElementById(i).value = ''; });
+    ['prjm-title','prjm-cat','prjm-loc','prjm-desc','prjm-tags'].forEach(function(i){ document.getElementById(i).value = ''; });
     document.getElementById('prjm-status').value = 'ongoing';
     document.getElementById('prjm-save-btn').textContent = 'Save Project';
+    clearProjectPhoto();
   }
+  document.getElementById('prj-cloudinary-warn').style.display = getCloudName() ? 'none' : 'block';
   document.getElementById('project-modal').classList.add('open');
 }
 function closeProjectModal() { document.getElementById('project-modal').classList.remove('open'); }
@@ -564,514 +1375,7 @@ function deleteProject(id) {
 renderPublicPersons();
 renderPublicJobs();
 renderPublicProjects();
-});
+renderPublicServices();
 </script>
-</head>
-<body>
-
-<!-- ===== ADMIN PANEL ===== -->
-<div id="admin-panel">
-  <div class="admin-box">
-    <!-- LOGIN SCREEN -->
-    <div id="admin-login-screen">
-      <div class="admin-header">
-        <span style="font-family:'Playfair Display',serif;font-weight:700;font-size:16px;">&#128274; Admin Login</span>
-        <button onclick="closeAdmin()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;">&#x2715;</button>
-      </div>
-      <div class="admin-login-wrap">
-        <div style="font-size:44px;margin-bottom:14px;">&#127959;&#65039;</div>
-        <h2 style="font-family:'Playfair Display',serif;color:#0d1b3e;margin-bottom:8px;font-size:22px;">Admin Access</h2>
-        <p style="color:#6b7280;font-size:14px;margin-bottom:24px;">Enter credentials to manage website content</p>
-        <div style="max-width:320px;margin:0 auto;display:flex;flex-direction:column;gap:14px;">
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Username</label><input id="admin-user" type="text" placeholder="admin" class="fi" onkeydown="if(event.key==='Enter')doLogin()"></div>
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Password</label><input id="admin-pass" type="password" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" class="fi" onkeydown="if(event.key==='Enter')doLogin()"></div>
-          <button onclick="doLogin()" class="btn-orange" style="justify-content:center;padding:11px;">Login</button>
-          <div id="login-err" style="display:none;color:#dc2626;font-size:13px;text-align:center;background:#fef2f2;padding:8px;border-radius:6px;">&#10060; Invalid credentials</div>
-        </div>
-      </div>
-    </div>
-    <!-- DASHBOARD -->
-    <div id="admin-dashboard" style="display:none;flex-direction:column;flex:1;">
-      <div class="admin-header">
-        <span style="font-family:'Playfair Display',serif;font-weight:700;font-size:16px;">&#9881;&#65039; Admin Dashboard</span>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <span style="font-size:12px;color:rgba(255,255,255,.7);">Logged in as Admin</span>
-          <button onclick="doLogout()" style="background:#e8730a;border:none;color:#fff;cursor:pointer;font-size:12px;padding:5px 12px;border-radius:4px;font-family:'Open Sans',sans-serif;">Logout</button>
-          <button onclick="closeAdmin()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;">&#x2715;</button>
-        </div>
-      </div>
-      <div class="admin-tabs" id="admin-tab-bar">
-        <button class="admin-tab active" onclick="switchTab('tab-persons',this)">&#128100; Key Persons</button>
-        <button class="admin-tab" onclick="switchTab('tab-jobs',this)">&#128188; Open Positions</button>
-        <button class="admin-tab" onclick="switchTab('tab-projects',this)">&#127959; Projects</button>
-        <button class="admin-tab" onclick="switchTab('tab-settings',this)">&#9881;&#65039; Settings</button>
-      </div>
-
-      <!-- TAB: KEY PERSONS -->
-      <div id="tab-persons" class="admin-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Key Persons</h3>
-          <button onclick="openPersonModal()" class="btn-green">+ Add Person</button>
-        </div>
-        <div id="persons-admin-list"></div>
-      </div>
-
-      <!-- TAB: OPEN POSITIONS -->
-      <div id="tab-jobs" class="admin-body" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Open Positions</h3>
-          <button onclick="openJobModal()" class="btn-green">+ Add Position</button>
-        </div>
-        <div id="jobs-admin-list"></div>
-      </div>
-
-      <!-- TAB: PROJECTS -->
-      <div id="tab-projects" class="admin-body" style="display:none;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
-          <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;">Projects</h3>
-          <button onclick="openProjectModal()" class="btn-green">+ Add Project</button>
-        </div>
-        <!-- Ongoing -->
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-          <span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#9679; ONGOING</span>
-          <span style="font-size:13px;color:#6b7280;">Projects currently under execution</span>
-        </div>
-        <div id="projects-admin-ongoing"></div>
-        <!-- Completed -->
-        <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px;">
-          <span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;">&#10003; COMPLETED</span>
-          <span style="font-size:13px;color:#6b7280;">Past completed projects</span>
-        </div>
-        <div id="projects-admin-completed"></div>
-      </div>
-
-      <!-- TAB: SETTINGS -->
-      <div id="tab-settings" class="admin-body" style="display:none;">
-        <h3 style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:20px;">&#9881;&#65039; Settings</h3>
-
-        <!-- Cloudinary -->
-        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:20px;margin-bottom:20px;">
-          <h4 style="color:#0369a1;font-size:15px;font-weight:700;margin-bottom:10px;">&#128759; Cloudinary Photo Upload</h4>
-          <p style="color:#0c4a6e;font-size:13px;line-height:1.7;margin-bottom:14px;">Enter your Cloudinary Cloud Name below. Photos uploaded for Key Persons will be stored on Cloudinary and visible on <strong>all devices everywhere</strong>.</p>
-          <div style="display:flex;flex-direction:column;gap:8px;max-width:400px;">
-            <label style="font-size:13px;font-weight:600;color:#374151;">Cloudinary Cloud Name</label>
-            <div style="display:flex;gap:10px;">
-              <input id="settings-cloudname" type="text" class="fi" placeholder="e.g. mycompanyxyz">
-              <button onclick="saveCloudNameFromSettings()" class="btn-orange" style="padding:9px 18px;white-space:nowrap;">&#128190; Save</button>
-            </div>
-            <div id="settings-cloudname-status" style="display:none;font-size:12px;color:#16a34a;margin-top:2px;">&#10003; Cloud Name saved!</div>
-            <p style="font-size:12px;color:#0c4a6e;margin-top:4px;">Find this in your Cloudinary dashboard. Also make sure your upload preset <strong>ml_default</strong> is set to <strong>Unsigned</strong>.</p>
-          </div>
-        </div>
-
-        <!-- Upload Preset -->
-        <div style="background:#fef9f5;border:1px solid #fed7aa;border-radius:8px;padding:20px;margin-bottom:20px;">
-          <h4 style="color:#92400e;font-size:15px;font-weight:700;margin-bottom:10px;">&#128229; Upload Preset Name</h4>
-          <p style="color:#78350f;font-size:13px;line-height:1.7;margin-bottom:12px;">If you created a custom unsigned preset (e.g. <code style="background:#fee2c8;padding:2px 5px;border-radius:3px;">atmagaurav_infra</code>), enter it below. Default is <code style="background:#fee2c8;padding:2px 5px;border-radius:3px;">ml_default</code>.</p>
-          <div style="display:flex;flex-direction:column;gap:8px;max-width:400px;">
-            <label style="font-size:13px;font-weight:600;color:#374151;">Upload Preset</label>
-            <div style="display:flex;gap:10px;">
-              <input id="settings-preset" type="text" class="fi" placeholder="ml_default">
-              <button onclick="savePresetFromSettings()" class="btn-orange" style="padding:9px 18px;white-space:nowrap;">&#128190; Save</button>
-            </div>
-            <div id="settings-preset-status" style="display:none;font-size:12px;color:#16a34a;margin-top:2px;">&#10003; Preset saved!</div>
-          </div>
-        </div>
-
-        <!-- Admin password info -->
-        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:18px;">
-          <h4 style="color:#374151;font-size:15px;font-weight:700;margin-bottom:8px;">&#128274; Admin Credentials</h4>
-          <p style="color:#6b7280;font-size:13px;line-height:1.7;">Username: <strong>admin</strong> &nbsp;|&nbsp; Password: <strong>admin123</strong><br>To change, edit the <code style="background:#e5e7eb;padding:2px 5px;border-radius:3px;">ADMIN_PASS</code> constant in the HTML file.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PERSON MODAL ===== -->
-<div id="person-modal" class="modal-overlay">
-  <div class="modal-box">
-    <h3 id="person-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Key Person</h3>
-    <div style="display:flex;flex-direction:column;gap:13px;">
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Full Name *</label><input id="pm-name" type="text" class="fi" placeholder="e.g. Kshitij Borkar"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Designation *</label><input id="pm-role" type="text" class="fi" placeholder="e.g. Director"></div>
-      <div>
-        <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">Photo <span style="color:#9ca3af;font-weight:400;">(uploads to Cloudinary &#8212; visible on all devices)</span></label>
-        <div id="cloudinary-warn" style="display:none;background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:8px;">
-          &#9888;&#65039; Set your Cloudinary Cloud Name in <strong>Admin &#8594; Settings</strong> tab first.
-        </div>
-        <label for="pm-photo-file" id="pm-photo-label" style="display:flex;align-items:center;gap:10px;background:#f9fafb;border:2px dashed #d1d5db;border-radius:8px;padding:13px 16px;cursor:pointer;font-size:13px;color:#374151;transition:border-color .2s;">
-          <span style="font-size:22px;">&#128247;</span>
-          <span id="pm-photo-filename">Click to upload a photo&hellip;</span>
-        </label>
-        <input type="file" id="pm-photo-file" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)">
-        <div id="pm-upload-progress" style="display:none;margin-top:8px;">
-          <div style="background:#e5e7eb;border-radius:4px;height:6px;overflow:hidden;"><div id="pm-progress-bar" style="height:100%;background:#e8730a;width:0%;transition:width .3s;border-radius:4px;"></div></div>
-          <div id="pm-upload-status" style="font-size:12px;color:#6b7280;margin-top:5px;">Uploading&hellip;</div>
-        </div>
-        <div id="pm-photo-preview" style="display:none;text-align:center;margin-top:10px;">
-          <img id="pm-photo-preview-img" src="" alt="Preview" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid #e8730a;display:inline-block;">
-          <br><button type="button" onclick="clearPhoto()" style="margin-top:6px;font-size:12px;color:#dc2626;background:none;border:none;cursor:pointer;font-family:'Open Sans',sans-serif;">&#10005; Remove</button>
-        </div>
-        <input type="hidden" id="pm-photo">
-      </div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Short Bio <span style="color:#9ca3af;font-weight:400;">(optional)</span></label><textarea id="pm-bio" rows="3" class="fi" style="resize:vertical;" placeholder="Brief description&hellip;"></textarea></div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button onclick="closePersonModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
-      <button onclick="savePerson()" class="btn-orange" style="padding:9px 18px;" id="pm-save-btn">Save Person</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== JOB MODAL ===== -->
-<div id="job-modal" class="modal-overlay">
-  <div class="modal-box">
-    <h3 id="job-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Open Position</h3>
-    <div style="display:flex;flex-direction:column;gap:13px;">
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Job Title *</label><input id="jm-title" type="text" class="fi" placeholder="e.g. Site Engineer"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Department *</label><input id="jm-dept" type="text" class="fi" placeholder="e.g. Engineering"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Location *</label><input id="jm-loc" type="text" class="fi" placeholder="e.g. Buldhana, MH"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Experience / Qualification</label><input id="jm-exp" type="text" class="fi" placeholder="e.g. B.E. Civil (2&#8211;5 yrs)"></div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button onclick="closeJobModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
-      <button onclick="saveJob()" class="btn-orange" style="padding:9px 18px;" id="jm-save-btn">Save Position</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== PROJECT MODAL ===== -->
-<div id="project-modal" class="modal-overlay">
-  <div class="modal-box">
-    <h3 id="project-modal-title" style="font-family:'Playfair Display',serif;color:#0d1b3e;font-size:18px;margin-bottom:18px;">Add Project</h3>
-    <div style="display:flex;flex-direction:column;gap:13px;">
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Project Title *</label><input id="prjm-title" type="text" class="fi" placeholder="e.g. NH 161G &#8211; Shegaon to Sangrampur"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Category *</label><input id="prjm-cat" type="text" class="fi" placeholder="e.g. Highway Maintenance &#183; NHAI"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Location *</label><input id="prjm-loc" type="text" class="fi" placeholder="e.g. Buldhana, MH"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Description</label><textarea id="prjm-desc" rows="3" class="fi" style="resize:vertical;" placeholder="Brief project description&#8230;"></textarea></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Status *</label>
-        <select id="prjm-status" class="fi" style="appearance:auto;cursor:pointer;">
-          <option value="ongoing">&#9679; Ongoing</option>
-          <option value="completed">&#10003; Completed</option>
-        </select>
-      </div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Image URL <span style="color:#9ca3af;font-weight:400;">(optional &#8212; paste Unsplash or any image URL)</span></label><input id="prjm-img" type="url" class="fi" placeholder="https://images.unsplash.com/&#8230;"></div>
-      <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Tags <span style="color:#9ca3af;font-weight:400;">(comma separated, e.g. Buldhana MH, Maintenance)</span></label><input id="prjm-tags" type="text" class="fi" placeholder="Buldhana MH, Maintenance"></div>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button onclick="closeProjectModal()" class="btn-navy" style="padding:9px 18px;">Cancel</button>
-      <button onclick="saveProject()" class="btn-orange" style="padding:9px 18px;" id="prjm-save-btn">Save Project</button>
-    </div>
-  </div>
-</div>
-
-<!-- ===== NAVBAR ===== -->
-<nav id="navbar">
-  <div class="nav-inner">
-    <button onclick="go('home')" style="display:flex;align-items:center;gap:11px;background:none;border:none;cursor:pointer;padding:0;">
-      <div style="width:40px;height:40px;background:#e8730a;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
-      </div>
-      <div style="text-align:left;">
-        <div style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;font-size:20px;line-height:1.2;">ATMAGAURAV INFRA</div>
-        <div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div>
-      </div>
-    </button>
-    <div id="desk-nav" style="display:flex;align-items:center;gap:2px;">
-      <button class="nav-btn active" id="nb-home"     onclick="go('home')">Home</button>
-      <button class="nav-btn"        id="nb-about"    onclick="go('about')">About Us</button>
-      <button class="nav-btn"        id="nb-services" onclick="go('services')">Services</button>
-      <button class="nav-btn"        id="nb-projects" onclick="go('projects')">Projects</button>
-      <button class="nav-btn"        id="nb-careers"  onclick="go('careers')">Careers</button>
-      <button class="nav-btn"        id="nb-contact"  onclick="go('contact')">Contact</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="openAdmin()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:11px;font-weight:600;padding:6px 12px;border-radius:4px;cursor:pointer;font-family:'Open Sans',sans-serif;" title="Admin Login">&#9881;&#65039; Admin</button>
-      <a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" class="btn-orange" style="padding:7px 15px;font-size:12px;border-radius:4px;">Employee Login</a>
-      <button id="hamburger" onclick="toggleMob()" style="display:none;background:none;border:none;cursor:pointer;padding:4px;" aria-label="Menu">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-      </button>
-    </div>
-  </div>
-  <div id="mob-menu">
-    <button class="mob-link" onclick="go('home')">Home</button>
-    <button class="mob-link" onclick="go('about')">About Us</button>
-    <button class="mob-link" onclick="go('services')">Services</button>
-    <button class="mob-link" onclick="go('projects')">Projects</button>
-    <button class="mob-link" onclick="go('careers')">Careers</button>
-    <button class="mob-link" onclick="go('contact')">Contact</button>
-    <a href="https://app.atmagauravinfra.com/" target="_blank" class="btn-orange" style="margin-top:12px;width:100%;justify-content:center;text-decoration:none;">Employee Login</a>
-  </div>
-</nav>
-
-<!-- ==================== HOME ==================== -->
-<div id="pg-home" class="page active">
-  <div id="hero-wrap">
-    <div id="hero-bg"></div>
-    <div id="hero-overlay"></div>
-    <div id="hero-content">
-      <div style="max-width:1280px;margin:0 auto;padding:0 24px;">
-        <div style="max-width:620px;">
-          <div class="badge au d1"><span class="adot"></span><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Government Infrastructure Contractor</span></div>
-          <h1 class="hero-h1 au d2" style="font-family:'Playfair Display',serif;font-size:clamp(38px,5.5vw,66px);font-weight:800;color:#fff;line-height:1.12;margin-bottom:18px;">Building India's<br><span style="color:#e8730a;">Infrastructure</span><br>of Tomorrow</h1>
-          <p class="au d3" style="color:rgba(255,255,255,.75);font-size:17px;line-height:1.75;margin-bottom:30px;max-width:500px;">Atmagaurav Infra Private Limited delivers world-class highway construction, bridge engineering, and road safety solutions across Maharashtra and beyond.</p>
-          <div class="au d4" style="display:flex;flex-wrap:wrap;gap:14px;">
-            <button onclick="go('services')" class="btn-orange" style="font-size:15px;padding:12px 26px;">Our Services <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-            <button onclick="go('projects')" class="btn-ghost" style="font-size:15px;padding:12px 26px;">View Projects</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(13,27,62,.9);backdrop-filter:blur(4px);border-top:1px solid rgba(255,255,255,.1);padding:13px 24px;">
-      <div style="max-width:1280px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:12px 36px;">
-        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>NHAI Empanelled Contractor</span>
-        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>MSRDC Registered</span>
-        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>State PWD Approved</span>
-        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>MORTH Standards Compliant</span>
-        <span style="display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.7);font-size:12px;font-weight:500;"><span class="adot"></span>IRC Code Adherence</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What We Do</span><h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#0d1b3e;margin-top:8px;">Core Services</h2><div class="ab c"></div></div>
-      <div class="g4" style="margin-top:8px;">
-        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Highway" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Highway Construction</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">End-to-end highway construction from greenfield to upgradation projects.</p></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Bridge" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Bridge Construction</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Design and build of major bridges, flyovers, and viaducts.</p></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Maintenance" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Highway Maintenance</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Periodic and routine maintenance of national and state highway corridors.</p></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:175px;"><img src="https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="Safety" style="height:175px;"></div><div style="padding:18px;"><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Road Safety Works</h3><p style="color:#6b7280;font-size:13px;line-height:1.65;">Crash barriers, signage, road marking, and traffic management systems.</p></div></div>
-      </div>
-      <div style="text-align:center;margin-top:40px;"><button onclick="go('services')" class="btn-navy">View All Services <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
-    </div>
-  </div>
-
-  <div class="sec" style="background:#f9fafb;">
-    <div class="inner">
-      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Currently Under Execution</span><h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#0d1b3e;margin-top:8px;">Ongoing Projects</h2><div class="ab c"></div></div>
-      <div class="g3" style="margin-top:8px;">
-        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="FOB" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Bridge Construction</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">Foot Over Bridge at Hiwra Ashram, Buldhana</h3><p style="color:#9ca3af;font-size:12px;">&#128205; District Buldhana, Maharashtra</p></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="NH161G" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">NH 161G &#8211; Shegaon to Sangrampur</h3><p style="color:#9ca3af;font-size:12px;">&#128205; Buldhana District, Maharashtra</p></div></div>
-        <div class="card"><div class="card-img-wrap" style="height:165px;position:relative;"><img src="https://images.unsplash.com/photo-1764232317908-008813d734af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600" alt="NH753C" style="height:165px;"><span style="position:absolute;top:10px;right:10px;background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">&#9679; Ongoing</span></div><div style="padding:18px;"><span style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;">Highway Maintenance</span><h3 style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#0d1b3e;margin:7px 0 8px;line-height:1.4;">NH 753C &#8211; Dusarbid to Pimpri Sarad</h3><p style="color:#9ca3af;font-size:12px;">&#128205; Jalna&#8211;Pulgaon Section, Maharashtra</p></div></div>
-      </div>
-      <div style="text-align:center;margin-top:40px;"><button onclick="go('projects')" class="btn-navy">View All Projects <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
-    </div>
-  </div>
-
-  <div class="sec" style="background:#0d1b3e;">
-    <div class="inner">
-      <div class="g2">
-        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Why Choose Us</span><h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#fff;margin:10px 0 18px;line-height:1.2;">Trusted by Government Agencies Across India</h2><p style="color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:26px;">With a proven track record since 2024, Atmagaurav Infra has established itself as a preferred contractor for critical national infrastructure projects.</p><button onclick="go('about')" class="btn-orange">Know More About Us <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Government Empanelled</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Registered with NHAI, MSRDC, and State PWD.</p></div>
-          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Quality Assurance</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Strict adherence to IRC, MORTH, and IS standards.</p></div>
-          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Safety First</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Zero-compromise safety culture with full PPE compliance.</p></div>
-          <div class="stat-box"><div style="width:32px;height:3px;background:#e8730a;border-radius:2px;margin:0 auto 12px;"></div><h4 style="font-family:'Playfair Display',serif;font-weight:700;color:#fff;margin-bottom:8px;font-size:15px;">Timely Delivery</h4><p style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6;">Proven track record of on-time project completion.</p></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div style="position:relative;padding:88px 24px;background:url('https://images.unsplash.com/photo-1585467682547-e0d34502e4cf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1200') center/cover no-repeat;overflow:hidden;">
-    <div style="position:absolute;inset:0;background:rgba(13,27,62,.86);"></div>
-    <div style="position:relative;max-width:700px;margin:0 auto;text-align:center;">
-      <h2 style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#fff;margin-bottom:14px;">Ready to Build Something Great?</h2>
-      <p style="color:rgba(255,255,255,.65);font-size:17px;margin-bottom:30px;line-height:1.7;">Partner with us for your next highway, bridge, or infrastructure project.</p>
-      <button onclick="go('contact')" class="btn-orange" style="font-size:15px;padding:12px 28px;">Get In Touch <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-    </div>
-  </div>
-  <div data-footer></div>
-</div>
-
-<!-- ==================== ABOUT ==================== -->
-<div id="pg-about" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Story</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">About Us</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Engineering excellence, integrity, and nation-building since 2024.</p></div></div>
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <div class="g2">
-        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Who We Are</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Atmagaurav Infra Private Limited</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">Atmagaurav Infra Private Limited is a government infrastructure contractor headquartered in Bhayander East, Thane, Maharashtra. Since our inception in 2024, we have been delivering critical infrastructure projects that connect communities and drive economic growth across India.</p><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">We specialize in highway construction, bridge engineering, road maintenance, and road safety systems &#8212; all executed to the highest standards set by NHAI, MORTH, IRC, and State PWD.</p><p style="color:#4b5563;line-height:1.8;">Our team of experienced engineers, project managers, and skilled professionals brings deep domain expertise and a passion for excellence to every project we undertake.</p></div>
-        <div><img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Team" style="width:100%;height:420px;object-fit:cover;border-radius:8px;display:block;"></div>
-      </div>
-    </div>
-  </div>
-  <div class="sec" style="background:#0d1b3e;padding-top:60px;padding-bottom:60px;">
-    <div class="inner">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;">
-        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">5+</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Ongoing Projects</div></div>
-        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">NHAI</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Empanelled Contractor</div></div>
-        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">MH</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Maharashtra Focus</div></div>
-        <div class="stat-box"><div style="font-family:'Playfair Display',serif;font-size:44px;font-weight:800;color:#e8730a;">IRC</div><div style="color:rgba(255,255,255,.7);font-size:14px;margin-top:8px;">Code Compliant</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- KEY PERSONS -->
-  <div class="sec" style="background:#f9fafb;">
-    <div class="inner">
-      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Leadership</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Key Persons</h2><div class="ab c"></div></div>
-      <div id="persons-public-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:8px;"></div>
-    </div>
-  </div>
-
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What Drives Us</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin-top:10px;">Our Core Values</h2><div class="ab c"></div></div>
-      <div class="g4" style="margin-top:8px;">
-        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#127919;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Excellence</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Highest standards in engineering, materials, and execution every project.</p></div>
-        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#128737;&#65039;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Integrity</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Complete transparency and ethical conduct in all our dealings.</p></div>
-        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#9888;&#65039;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Safety</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Zero-accident culture with rigorous PPE compliance and safety audits.</p></div>
-        <div style="padding:28px;border:1px solid #e5e7eb;border-radius:8px;text-align:center;"><div style="font-size:34px;margin-bottom:12px;">&#129309;</div><h3 style="font-family:'Playfair Display',serif;font-weight:700;color:#0d1b3e;margin-bottom:8px;">Partnership</h3><p style="color:#6b7280;font-size:13px;line-height:1.7;">Long-term relationships with government agencies and communities.</p></div>
-      </div>
-    </div>
-  </div>
-  <div data-footer></div>
-</div>
-
-<!-- ==================== SERVICES ==================== -->
-<div id="pg-services" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">What We Offer</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Our Services</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Comprehensive infrastructure solutions delivered with precision, quality, and safety.</p></div></div>
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <div class="g2" style="margin-bottom:64px;"><div><img src="https://images.unsplash.com/photo-1762937958295-c1c08b5e5e51?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Highway" style="width:100%;height:340px;object-fit:cover;border-radius:8px;display:block;"></div><div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">01 &#8212; Highway Construction</span><h2 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0d1b3e;margin-top:10px;">End-to-End Highway Construction</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">We deliver complete highway construction from land acquisition support to final commissioning &#8212; greenfield expressways, upgradation, four-laning, six-laning, and related civil works.</p><ul style="list-style:none;padding:0;"><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Greenfield &amp; brownfield highway development</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Four-laning &amp; six-laning of national highways</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Flexible &amp; rigid pavement construction</li><li style="color:#4b5563;font-size:14px;padding:8px 0;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>MORTH &amp; IRC code compliant execution</li></ul></div></div>
-      <div class="g2" style="margin-bottom:64px;"><div class="order-r"><img src="https://images.unsplash.com/photo-1705242431246-e99952d509a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Bridge" style="width:100%;height:340px;object-fit:cover;border-radius:8px;display:block;"></div><div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">02 &#8212; Bridge Construction</span><h2 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0d1b3e;margin-top:10px;">Bridge &amp; Flyover Engineering</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">Our bridge engineering team handles construction and commissioning of major bridges, river crossings, viaducts, foot over bridges, and flyovers.</p><ul style="list-style:none;padding:0;"><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>RCC &amp; PSC bridge construction</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Foot over bridges (FOB) &amp; pedestrian underpasses</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Flyovers, ROBs &amp; grade separators</li><li style="color:#4b5563;font-size:14px;padding:8px 0;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>IRC &amp; IS code compliant design</li></ul></div></div>
-      <div class="g2" style="margin-bottom:64px;"><div><img src="https://images.unsplash.com/photo-1774274951965-3828c5cea7c9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Maintenance" style="width:100%;height:340px;object-fit:cover;border-radius:8px;display:block;"></div><div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">03 &#8212; Highway Maintenance</span><h2 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0d1b3e;margin-top:10px;">Periodic &amp; Routine Maintenance</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">We provide comprehensive Annual Maintenance Contracts (AMC) for national and state highways ensuring roads remain safe, pothole-free, and functional.</p><ul style="list-style:none;padding:0;"><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Annual maintenance contracts (AMC)</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Pothole patching &amp; bituminous overlay</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Drainage maintenance &amp; clearance</li><li style="color:#4b5563;font-size:14px;padding:8px 0;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Emergency monsoon repairs</li></ul></div></div>
-      <div class="g2"><div class="order-r"><img src="https://images.unsplash.com/photo-1577228336271-d1edca526d64?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Safety" style="width:100%;height:340px;object-fit:cover;border-radius:8px;display:block;"></div><div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">04 &#8212; Road Safety Works</span><h2 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#0d1b3e;margin-top:10px;">Safety Systems &amp; Signage</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:16px;">We install and maintain comprehensive road safety systems that reduce accidents and protect lives on national and state highways.</p><ul style="list-style:none;padding:0;"><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>W-beam &amp; thrie-beam crash barriers</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Retro-reflective road signage &amp; delineators</li><li style="color:#4b5563;font-size:14px;padding:8px 0;border-bottom:1px solid #f3f4f6;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Thermoplastic road markings</li><li style="color:#4b5563;font-size:14px;padding:8px 0;display:flex;align-items:center;gap:10px;"><span style="color:#e8730a;font-weight:700;">&#10003;</span>Safety audits &amp; black-spot treatment</li></ul></div></div>
-    </div>
-  </div>
-  <div style="padding:56px 24px;background:#f9fafb;text-align:center;"><h3 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;margin-bottom:12px;">Have a Project in Mind?</h3><p style="color:#6b7280;margin-bottom:26px;font-size:15px;">Let's discuss your requirements and build something that lasts.</p><button onclick="go('contact')" class="btn-orange" style="font-size:15px;padding:12px 28px;">Contact Us Today</button></div>
-  <div data-footer></div>
-</div>
-
-<!-- ==================== PROJECTS ==================== -->
-<div id="pg-projects" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Our Work</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Projects</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Infrastructure projects shaping Maharashtra's future.</p></div></div>
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <!-- Ongoing -->
-      <div id="public-ongoing-header" style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#16a34a;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#9679; ONGOING</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Currently Under Execution</h2></div>
-      <div id="projects-public-ongoing" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:52px;"></div>
-      <!-- Completed -->
-      <div id="public-completed-section" style="display:none;">
-        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px;"><span style="background:#374151;color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;">&#10003; COMPLETED</span><h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#0d1b3e;">Past Projects</h2></div>
-        <div id="projects-public-completed" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;"></div>
-      </div>
-    </div>
-  </div>
-  <div data-footer></div>
-</div>
-
-<!-- ==================== CAREERS ==================== -->
-<div id="pg-careers" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Join Our Team</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Careers</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">Build your career while building India's future infrastructure.</p></div></div>
-  <div class="sec" style="background:#fff;">
-    <div class="inner">
-      <div class="g2">
-        <div><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Why Join Us</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin:10px 0 0;">Grow With a Nation-Builder</h2><div class="ab"></div><p style="color:#4b5563;line-height:1.8;margin-bottom:22px;">At Atmagaurav Infra, we believe our people are our greatest asset. We offer a challenging, rewarding, and safe environment where talented professionals grow alongside one of Maharashtra's most respected infrastructure companies.</p>
-          <div style="display:flex;flex-direction:column;gap:12px;">
-            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128200;</span><div><strong style="color:#0d1b3e;font-size:14px;">Career Growth</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Clear growth paths from junior engineer to project manager and beyond.</p></div></div>
-            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128737;&#65039;</span><div><strong style="color:#0d1b3e;font-size:14px;">Safety Culture</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Your safety is our top priority &#8212; PPE, regular training, zero-accident mindset.</p></div></div>
-            <div style="display:flex;gap:14px;padding:16px;border-left:3px solid #e8730a;background:#fef9f5;border-radius:0 6px 6px 0;"><span style="font-size:22px;">&#128176;</span><div><strong style="color:#0d1b3e;font-size:14px;">Competitive Pay</strong><p style="color:#6b7280;font-size:13px;margin-top:4px;line-height:1.6;">Market-competitive salaries, timely payments, and performance bonuses.</p></div></div>
-          </div>
-        </div>
-        <div><img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=800" alt="Team" style="width:100%;height:440px;object-fit:cover;border-radius:8px;display:block;"></div>
-      </div>
-    </div>
-  </div>
-  <div class="sec" style="background:#f9fafb;padding-top:20px;">
-    <div class="inner-md">
-      <div style="text-align:center;"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Current Openings</span><h2 style="font-family:'Playfair Display',serif;font-size:33px;font-weight:700;color:#0d1b3e;margin:10px 0;">Open Positions</h2><div class="ab c"></div></div>
-      <div id="jobs-public-list" style="display:flex;flex-direction:column;gap:14px;margin-top:8px;"></div>
-      <div style="text-align:center;margin-top:32px;padding:26px;background:#fff;border-radius:8px;border:1px solid #e5e7eb;">
-        <p style="color:#6b7280;margin-bottom:14px;font-size:14px;">Don't see a relevant role? We're always looking for talented professionals.</p>
-        <a href="mailto:admin@atmagauravinfra.com?subject=General Application &#8211; Resume Submission" class="btn-navy" style="text-decoration:none;">&#128231; Send Your Resume</a>
-      </div>
-    </div>
-  </div>
-  <div data-footer></div>
-</div>
-
-<!-- ==================== CONTACT ==================== -->
-<div id="pg-contact" class="page">
-  <div class="ph"><div class="inner"><span style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;">Reach Out</span><h1 style="font-family:'Playfair Display',serif;font-size:48px;font-weight:800;color:#fff;margin:10px 0 14px;">Contact Us</h1><p style="color:rgba(255,255,255,.6);font-size:16px;max-width:560px;line-height:1.7;">We'd love to hear about your project &#8212; whether it's a new tender, partnership, or enquiry.</p></div></div>
-  <div class="sec" style="background:#fff;">
-    <div style="max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1fr 1.2fr;gap:60px;" id="contact-grid">
-      <div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;">Get In Touch</h2><div class="ab"></div>
-        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#128205;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Registered Office</div><div style="color:#6b7280;font-size:13px;line-height:1.75;">SH9, Govindrao Apt Buld G Ltd,<br>Vimal Dairy Road, Goddev Village,<br>Bhayander East, Dist Thane &#8211; 401105,<br>Maharashtra, India</div></div></div>
-        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#9993;&#65039;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Email</div><a href="mailto:admin@atmagauravinfra.com" style="color:#e8730a;font-size:14px;text-decoration:none;display:block;">admin@atmagauravinfra.com</a></div></div>
-        <div style="display:flex;gap:14px;margin-bottom:22px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#127760;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Employee Portal</div><a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" style="color:#e8730a;font-size:14px;text-decoration:none;">app.atmagauravinfra.com &#8594;</a></div></div>
-        <div style="display:flex;gap:14px;margin-bottom:28px;"><div style="width:42px;height:42px;background:#fef3e8;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">&#128336;</div><div><div style="font-weight:600;color:#0d1b3e;font-size:14px;margin-bottom:5px;">Office Hours</div><div style="color:#6b7280;font-size:13px;line-height:1.75;">Monday &#8211; Saturday: 9:00 AM &#8211; 6:00 PM<br>Sunday: Closed</div></div></div>
-        <a href="https://maps.google.com/?q=Bhayander+East+Thane+Maharashtra" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;height:160px;background:#f3f4f6;border-radius:8px;border:1px solid #e5e7eb;color:#e8730a;font-size:14px;font-weight:600;text-decoration:none;">&#128205; View on Google Maps &#8594;</a>
-      </div>
-      <div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#0d1b3e;">Send a Message</h2><div class="ab"></div>
-        <form onsubmit="submitContact(event)" style="display:flex;flex-direction:column;gap:14px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="g-half">
-            <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Full Name *</label><input type="text" required placeholder="Your full name" class="fi" id="cf-name"></div>
-            <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Company</label><input type="text" placeholder="Company (optional)" class="fi" id="cf-company"></div>
-          </div>
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Email Address *</label><input type="email" required placeholder="you@example.com" class="fi" id="cf-email"></div>
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Phone Number</label><input type="tel" placeholder="+91 XXXXX XXXXX" class="fi" id="cf-phone"></div>
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Subject *</label>
-            <select required class="fi" id="cf-subject" style="appearance:auto;cursor:pointer;">
-              <option value="">Select a subject&hellip;</option>
-              <option>New Project Enquiry</option><option>Tender / Bid Information</option><option>Partnership Opportunity</option><option>Career Query</option><option>General Enquiry</option>
-            </select>
-          </div>
-          <div><label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:5px;">Message *</label><textarea required placeholder="Tell us about your project or query&hellip;" rows="5" class="fi" id="cf-msg" style="resize:vertical;"></textarea></div>
-          <button type="submit" class="btn-orange" style="justify-content:center;font-size:15px;padding:12px;">Send Message &#9993;&#65039;</button>
-          <div id="c-ok" style="display:none;text-align:center;color:#16a34a;font-size:14px;font-weight:600;padding:12px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;">&#10003; Thank you! We'll get back to you within 1&#8211;2 business days.</div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <div data-footer></div>
-</div>
-
-<!-- ===== FOOTER TEMPLATE ===== -->
-<template id="ftpl">
-  <footer style="background:#0a1628;color:#fff;">
-    <div style="max-width:1280px;margin:0 auto;padding:56px 24px 36px;">
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1.5fr;gap:36px;margin-bottom:44px;" class="footer-grid">
-        <div>
-          <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
-            <div style="width:38px;height:38px;background:#e8730a;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M14 6a6 6 0 0 1 6 6v3"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg></div>
-            <div><div style="font-family:'Playfair Display',serif;font-weight:700;font-size:18px;color:#fff;line-height:1.2;">ATMAGAURAV INFRA</div><div style="color:#e8730a;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;">Private Limited</div></div>
-          </div>
-          <p style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.8;max-width:260px;">Building the infrastructure of tomorrow &#8212; highways, bridges, and roads that connect communities across India.</p>
-        </div>
-        <div>
-          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Quick Links</h4>
-          <div style="display:flex;flex-direction:column;gap:9px;">
-            <button class="fl-btn" onclick="go('home')"><span style="color:#e8730a;">&#8250;</span> Home</button>
-            <button class="fl-btn" onclick="go('about')"><span style="color:#e8730a;">&#8250;</span> About Us</button>
-            <button class="fl-btn" onclick="go('services')"><span style="color:#e8730a;">&#8250;</span> Services</button>
-            <button class="fl-btn" onclick="go('projects')"><span style="color:#e8730a;">&#8250;</span> Projects</button>
-            <button class="fl-btn" onclick="go('careers')"><span style="color:#e8730a;">&#8250;</span> Careers</button>
-            <button class="fl-btn" onclick="go('contact')"><span style="color:#e8730a;">&#8250;</span> Contact</button>
-          </div>
-        </div>
-        <div>
-          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Services</h4>
-          <div style="display:flex;flex-direction:column;gap:9px;">
-            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Highway Construction</span>
-            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Bridge Construction</span>
-            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Highway Maintenance</span>
-            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Bridge Maintenance</span>
-            <span style="color:rgba(255,255,255,.55);font-size:13px;"><span style="color:#e8730a;">&#8250;</span> Road Safety Works</span>
-          </div>
-        </div>
-        <div>
-          <h4 style="color:#e8730a;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:16px;">Contact Info</h4>
-          <div style="display:flex;gap:10px;margin-bottom:14px;"><span style="font-size:15px;flex-shrink:0;margin-top:2px;">&#128205;</span><span style="color:rgba(255,255,255,.55);font-size:13px;line-height:1.7;">SH9, Govindrao Apt Buld G Ltd, Vimal Dairy Road, Goddev Village, Bhayander East, Thane 401105, MH</span></div>
-          <div style="display:flex;gap:10px;"><span style="font-size:15px;flex-shrink:0;">&#9993;&#65039;</span><a href="mailto:admin@atmagauravinfra.com" style="color:rgba(255,255,255,.55);font-size:13px;text-decoration:none;">admin@atmagauravinfra.com</a></div>
-        </div>
-      </div>
-    </div>
-    <div style="border-top:1px solid rgba(255,255,255,.1);"><div style="max-width:1280px;margin:0 auto;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;"><p style="color:rgba(255,255,255,.35);font-size:13px;">&#169; 2026 Atmagaurav Infra Private Limited. All rights reserved.</p><a href="https://app.atmagauravinfra.com/" target="_blank" rel="noopener noreferrer" style="color:#e8730a;font-size:13px;font-weight:600;text-decoration:none;">Employee Portal &#8594;</a></div></div>
-  </footer>
-</template>
-
 </body>
 </html>
